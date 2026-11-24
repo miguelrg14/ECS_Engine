@@ -19,6 +19,7 @@ namespace engine
     class Transform_System;
 
     struct Box_Collider;
+    struct Transform;
 
     struct Aabb
     {
@@ -77,6 +78,9 @@ namespace engine
         /// Box-against-box tests done in the last frame. Without the broad phase it would be n(n-1)/2.
         std::size_t get_pair_tests     () const { return pair_tests; }
         std::size_t get_collider_count () const { return bodies.size (); }
+
+        /// World-space box of a collider: wraps the rotated, scaled box in an axis-aligned one.
+        static Aabb compute_world_box (const Transform & transform, const Box_Collider & collider);
 
         /// Every overlapping pair among `boxes`, by sweep and prune. Pairs hold indices into `boxes`,
         /// lower index first. Exposed for testing.

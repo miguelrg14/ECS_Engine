@@ -13,6 +13,9 @@
 #include "scripts/Player_Controller.hpp"
 #include "scripts/Squash_And_Stretch.hpp"
 
+#include <imgui.h>
+
+#include <algorithm>
 #include <cstdio>
 #include <random>
 
@@ -157,9 +160,11 @@ void Demo_Scene::initialize ()
         if (event.impact_speed > 9.f) log_info ("Demo_Scene: hard landing at %.1f units/s", double(event.impact_speed));
     });
 
+    add_debug_ui ();
+
     log_info ("Demo_Scene: %zu entities. Collect the 5 orbs before time runs out, avoid the drones. "
               "WASD = move, Space = jump, Shift = run, right mouse = orbit, wheel = zoom, R = restart, "
-              "Tab = fly camera, C = 1000 cubes, L = light, F = fog, X = wireframe, V = vsync, Esc = quit",
+              "Tab = fly camera, F1 = debug tools, C = 1000 cubes, L = light, F = fog, X = wireframe, V = vsync, Esc = quit",
               registry.alive_count ());
 }
 
@@ -273,7 +278,6 @@ void Demo_Scene::finalize ()
 {
     application.get_events ().unsubscribe (landed_subscription);
     application.get_window ().set_mouse_captured (false);
-    Render_Command::set_wireframe (false);
 }
 
 Entity Demo_Scene::create_object
@@ -404,46 +408,86 @@ void Demo_Scene::handle_input ()
 
     if (input.was_key_pressed (SDL_SCANCODE_X))
     {
-        wireframe = !wireframe;
-        Render_Command::set_wireframe (wireframe);
+        Render_System & render = application.get_render_system ();
+        render.set_wireframe (!render.is_wireframe ());
     }
 }
 
 void Demo_Scene::update_title ()
 {
-    const Game_State & state = application.get_registry ().get< Game_State >(game);
-
-    char status[96];
-
-    switch (state.round)
-    {
-        case Round::playing:
-            std::snprintf (status, sizeof(status), "Orbs %d / %d  |  %.0f s left",
-                           state.collected, state.total, double(state.time_limit - state.elapsed));
-            break;
-
-        case Round::won:
-            std::snprintf (status, sizeof(status), "All orbs in %.1f s!  Press R to play again", double(state.elapsed));
-            break;
-
-        case Round::lost:
-            std::snprintf (status, sizeof(status), "Time is up (%d / %d orbs).  Press R to try again", state.collected, state.total);
-            break;
-    }
-
     const float fps = application.get_kernel ().get_fps ();
 
-    char title[224];
-
-    std::snprintf
-    (
-        title, sizeof(title),
-        "ECS Engine  |  %s  |  %.0f FPS  |  %zu entities  |  %zu colliders",
-        status,
-        fps,
-        application.get_registry ().alive_count (),
-        application.get_collision_system ().get_collider_count ()
-    );
+    char title[96];
+    std::snprintf (title, sizeof(title), "ECS Engine  |  %.0f FPS  |  %zu entities", double(fps), application.get_registry ().alive_count ());
 
     application.get_window ().set_title (title);
+}
+
+void Demo_Scene::add_debug_ui ()
+{
+    Debug_UI_System & debug_ui = application.get_debug_ui ();
+
+    // The HUD is an overlay: drawn every frame, also with the debug tools hidden.
+    debug_ui.add_overlay ([this] { draw_hud (); });
+
+    // The game's own component appears in the inspector like the engine's.
+    debug_ui.add_inspector< Game_State >("Game State", [] (Game_State & state)
+    {
+        ImGui::Text ("Orbs  %d / %d", state.collected, state.total);
+        ImGui::SliderFloat ("Time limit", &state.time_limit, 10.f, 300.f, "%.0f s");
+        ImGui::Text ("Elapsed  %.1f s", double(state.elapsed));
+        ImGui::Text ("Round  %s", state.round == Round::playing ? "playing" : state.round == Round::won ? "won" : "lost");
+    });
+}
+
+void Demo_Scene::draw_hud ()
+{
+    const Game_State & state   = application.get_registry ().get< Game_State >(game);
+    const ImVec2       display = ImGui::GetIO ().DisplaySize;
+
+    ImGui::SetNextWindowPos      ({ display.x * 0.5f, 12.f }, ImGuiCond_Always, { 0.5f, 0.f });
+    ImGui::SetNextWindowBgAlpha  (0.55f);
+
+    const ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize
+                                 | ImGuiWindowFlags_NoInputs     | ImGuiWindowFlags_NoSavedSettings
+                                 | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+
+    if (ImGui::Begin ("HUD", nullptr, flags))
+    {
+        ImGui::PushFont (nullptr, ImGui::GetStyle ().FontSizeBase * 1.6f);
+
+        switch (state.round)
+        {
+            case Round::playing:
+            {
+                const float left = std::max (state.time_limit - state.elapsed, 0.f);
+
+                ImGui::Text ("Orbs  %d / %d", state.collected, state.total);
+                ImGui::SameLine (0.f, 40.f);
+                ImGui::TextColored (left < 15.f ? ImVec4(1.f, 0.4f, 0.3f, 1.f) : ImVec4(1.f, 1.f, 1.f, 1.f), "%.0f s", double(left));
+
+                if (state.invulnerable > 0.f)
+                {
+                    ImGui::TextColored ({ 1.f, 0.45f, 0.35f, 1.f }, "Caught by a drone!");
+                }
+                break;
+            }
+
+            case Round::won:
+                ImGui::TextColored ({ 0.5f, 1.f, 0.5f, 1.f }, "All orbs in %.1f s!", double(state.elapsed));
+                ImGui::TextUnformatted ("Press R to play again");
+                break;
+
+            case Round::lost:
+                ImGui::TextColored ({ 1.f, 0.5f, 0.4f, 1.f }, "Time is up  (%d / %d orbs)", state.collected, state.total);
+                ImGui::TextUnformatted ("Press R to try again");
+                break;
+        }
+
+        ImGui::PopFont ();
+
+        ImGui::TextDisabled ("WASD move  Space jump  Right mouse orbit  R restart  F1 debug tools");
+    }
+
+    ImGui::End ();
 }

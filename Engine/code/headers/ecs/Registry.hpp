@@ -50,6 +50,7 @@ namespace engine
     {
         std::vector< Entity >        slots;              // slots[i] = entity using index i (current version)
         std::vector< std::uint32_t > free_indices;       // destroyed slots, reused first
+        std::vector< bool          > in_use;             // in_use[i]: slot i holds a live entity
         std::size_t                  alive = 0;
 
         std::vector< std::unique_ptr< IComponent_Pool > > pools;
@@ -75,6 +76,16 @@ namespace engine
 
         /// Destroys every entity and component.
         void   clear   ();
+
+        /// Calls function(entity) for every live entity, in slot order.
+        template< typename Function >
+        void each (Function && function) const
+        {
+            for (std::size_t index = 0; index < slots.size (); ++index)
+            {
+                if (in_use[index]) function (slots[index]);
+            }
+        }
 
     public:
 

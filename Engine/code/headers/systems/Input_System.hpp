@@ -5,6 +5,9 @@
 
 #include "core/Task.hpp"
 
+#include <SDL.h>
+#include <functional>
+
 namespace engine
 {
 
@@ -16,15 +19,27 @@ namespace engine
     /// forwards resizes to the Window and stops the Kernel when the window is closed.
     class Input_System final : public Task
     {
-        Input  & input;
-        Window & window;
-        Kernel & kernel;
+    public:
+
+        /// Sees every event first. Returns which kinds of input it took for itself
+        /// (for example a debug window under the mouse), so the game ignores them.
+        struct Capture { bool keyboard = false; bool mouse = false; };
+        using Event_Filter = std::function< Capture (const SDL_Event & ) >;
+
+    private:
+
+        Input        & input;
+        Window       & window;
+        Kernel       & kernel;
+        Event_Filter   filter;
 
     public:
 
         Input_System (Input & input, Window & window, Kernel & kernel);
 
         void execute (float delta_time) override;
+
+        void set_event_filter (Event_Filter new_filter) { filter = std::move(new_filter); }
     };
 
 }

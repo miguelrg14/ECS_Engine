@@ -55,9 +55,17 @@ namespace engine
             apply_pending ();
             update_timing ();
 
-            for (Task * task : tasks)
+            task_times.resize (tasks.size (), 0.f);
+
+            for (std::size_t i = 0; i < tasks.size (); ++i)
             {
-                task->execute (delta_time);
+                Timer task_timer;
+
+                tasks[i]->execute (delta_time);
+
+                // Exponential moving average: readable numbers that still react within a second.
+                const float milliseconds = task_timer.elapsed_seconds () * 1000.f;
+                task_times[i] += (milliseconds - task_times[i]) * 0.05f;
             }
 
             ++frame_count;
@@ -73,6 +81,18 @@ namespace engine
         running = false;
 
         log_info ("Kernel: stopped after %llu frames", static_cast< unsigned long long >(frame_count));
+    }
+
+    std::vector< Kernel::Task_Timing > Kernel::get_task_timings () const
+    {
+        std::vector< Task_Timing > timings;
+
+        for (std::size_t i = 0; i < tasks.size (); ++i)
+        {
+            timings.push_back ({ tasks[i], i < task_times.size () ? task_times[i] : 0.f });
+        }
+
+        return timings;
     }
 
     void Kernel::insert_sorted (Task & task)
@@ -106,6 +126,8 @@ namespace engine
 
         pending_remove.clear ();
 
+        const bool changed = !pending_add.empty ();
+
         for (Task * task : pending_add)
         {
             insert_sorted (*task);
@@ -113,6 +135,8 @@ namespace engine
         }
 
         pending_add.clear ();
+
+        if (changed) task_times.assign (tasks.size (), 0.f);
     }
 
     void Kernel::update_timing ()

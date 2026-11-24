@@ -1,0 +1,65 @@
+# Builds the solution on Windows with Visual Studio 2026 on every push and pull
+# request. The Tests project runs the unit tests as a post-build step, so a
+# failing test fails the build. Pushing a tag like v1.0.0 also publishes a
+# GitHub release with the packaged game.
+
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+    tags:     [ 'v*' ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write          # needed to publish releases
+
+jobs:
+  build:
+    name: ${{ matrix.configuration }}
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [ Debug, Release ]
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build and run tests
+        run: msbuild ECS_Engine.sln /m /nologo /verbosity:minimal /p:Configuration=${{ matrix.configuration }} /p:Platform=x64
+
+      - name: Package
+        if: matrix.configuration == 'Release'
+        shell: pwsh
+        run: |
+          $name = "ECS_Engine-windows-x64"
+          New-Item -ItemType Directory -Path $name, "$name/licenses" | Out-Null
+          Copy-Item binaries/Release/ECS_Engine.exe, binaries/Release/SDL2.dll -Destination $name
+          Copy-Item binaries/Release/assets -Destination $name -Recurse
+          Copy-Item README.md, LICENSE -Destination $name
+          foreach ($library in Get-ChildItem libraries -Directory) {
+            $license = Join-Path $library.FullName "license.txt"
+            if (Test-Path $license) { Copy-Item $license "$name/licenses/$($library.Name).txt" }
+          }
+          Compress-Archive -Path $name -DestinationPath "$name.zip"
+
+      - name: Upload build
+        if: matrix.configuration == 'Release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ECS_Engine-windows-x64
+          path: ECS_Engine-windows-x64.zip
+
+      - name: Publish release
+        if: matrix.configuration == 'Release' && startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ECS_Engine-windows-x64.zip
+          generate_release_notes: true

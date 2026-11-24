@@ -11,6 +11,7 @@
 #include "renderer/Renderer.hpp"
 #include "resources/Resource_Manager.hpp"
 #include "systems/Collision_System.hpp"
+#include "systems/Debug_UI_System.hpp"
 #include "systems/Event_System.hpp"
 #include "systems/Input_System.hpp"
 #include "systems/Movement_System.hpp"
@@ -51,6 +52,7 @@ namespace engine
         Collision_System collision_system;
         Event_System     event_system;
         Render_System    render_system;
+        Debug_UI_System  debug_ui_system;
         Present_System   present_system;
 
     public:
@@ -69,6 +71,8 @@ namespace engine
         Registry         & get_registry  ()       { return registry;  }
         Event_Bus        & get_events    ()       { return events;    }
         Render_System    & get_render_system ()   { return render_system; }
+        Input_System     & get_input_system  ()   { return input_system;  }
+        Debug_UI_System  & get_debug_ui      ()   { return debug_ui_system; }
         Collision_System & get_collision_system () { return collision_system; }
         const Input  & get_input  () const { return input;  }
         Kernel       & get_kernel ()       { return kernel; }

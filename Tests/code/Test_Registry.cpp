@@ -371,3 +371,29 @@ TEST (ten_thousand_entities_half_destroyed)
     CHECK (registry.alive_count () == 10000);
     CHECK (!registry.valid (entities[0]));
 }
+
+TEST (each_visits_every_live_entity_once)
+{
+    Registry registry;
+    std::vector< Entity > created;
+
+    for (int i = 0; i < 20; ++i) created.push_back (registry.create ());
+
+    registry.destroy (created[3]);
+    registry.destroy (created[7]);
+    const Entity reused = registry.create ();       // takes slot 7 back
+
+    std::set< Entity > visited;
+    registry.each ([&visited] (Entity entity) { visited.insert (entity); });
+
+    CHECK (visited.size () == 19);
+    CHECK (visited.count (created[3]) == 0);
+    CHECK (visited.count (created[7]) == 0);
+    CHECK (visited.count (reused) == 1);
+
+    registry.clear ();
+
+    int after_clear = 0;
+    registry.each ([&after_clear] (Entity ) { ++after_clear; });
+    CHECK (after_clear == 0);
+}

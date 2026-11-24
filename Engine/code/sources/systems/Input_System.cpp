@@ -27,6 +27,17 @@ namespace engine
 
         while (SDL_PollEvent (&event))
         {
+            const Capture captured = filter ? filter (event) : Capture{};
+
+            const bool is_key   = event.type == SDL_KEYDOWN || event.type == SDL_KEYUP;
+            const bool is_mouse = event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP
+                               || event.type == SDL_MOUSEWHEEL;
+
+            // Releases always reach the game, so nothing stays held after the UI takes over.
+            const bool is_release = event.type == SDL_KEYUP || event.type == SDL_MOUSEBUTTONUP;
+
+            if (!is_release && ((is_key && captured.keyboard) || (is_mouse && captured.mouse))) continue;
+
             switch (event.type)
             {
                 case SDL_QUIT:

@@ -17,6 +17,7 @@ namespace engine
             // Reuse a slot. Its version was already incremented when it was destroyed.
             const std::uint32_t index = free_indices.back ();
             free_indices.pop_back ();
+            in_use[index] = true;
             return slots[index];
         }
 
@@ -27,7 +28,8 @@ namespace engine
         }
 
         const Entity entity = entity::make (std::uint32_t(slots.size ()), 0);
-        slots.push_back (entity);
+        slots .push_back (entity);
+        in_use.push_back (true);
         return entity;
     }
 
@@ -45,7 +47,8 @@ namespace engine
         const std::uint32_t index   = entity::index_of   (entity);
         const std::uint32_t version = entity::version_of (entity) + 1;     // wraps after 255 reuses
 
-        slots[index] = entity::make (index, version);
+        slots[index]  = entity::make (index, version);
+        in_use[index] = false;
         free_indices.push_back (index);
 
         --alive;
@@ -70,17 +73,14 @@ namespace engine
         // Live slots get a new version, as if destroyed one by one, so old handles
         // stay invalid. Free slots already got theirs when they were destroyed.
 
-        std::vector< bool > is_free (slots.size (), false);
-
-        for (std::uint32_t index : free_indices) is_free[index] = true;
-
         free_indices.clear ();
 
         for (std::uint32_t index = std::uint32_t(slots.size ()); index-- > 0; )
         {
-            if (!is_free[index])
+            if (in_use[index])
             {
-                slots[index] = entity::make (index, entity::version_of (slots[index]) + 1);
+                slots[index]  = entity::make (index, entity::version_of (slots[index]) + 1);
+                in_use[index] = false;
             }
 
             free_indices.push_back (index);     // pushed last to first, so index 0 is reused first

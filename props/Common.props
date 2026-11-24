@@ -25,7 +25,7 @@
       <!-- Headers included with <...> (SDL, GLM, GLAD) do not add warnings of their own. -->
       <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
       <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
-      <AdditionalIncludeDirectories>$(EngineRoot)Engine\code\headers;$(EngineRoot)libraries\sdl\include;$(EngineRoot)libraries\glad\include;$(EngineRoot)libraries\glm\include;$(EngineRoot)libraries\stb\include;$(EngineRoot)libraries\tinyobjloader\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(EngineRoot)Engine\code\headers;$(EngineRoot)libraries\sdl\include;$(EngineRoot)libraries\glad\include;$(EngineRoot)libraries\glm\include;$(EngineRoot)libraries\stb\include;$(EngineRoot)libraries\tinyobjloader\include;$(EngineRoot)libraries\imgui\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>GLM_FORCE_SILENT_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>

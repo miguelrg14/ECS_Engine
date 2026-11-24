@@ -28,21 +28,20 @@ namespace engine
             return a < b ? Collision_System::Pair{ a, b } : Collision_System::Pair{ b, a };
         }
 
-        /// World-space box that contains the collider, whatever the entity's rotation.
-        Aabb world_box (const Transform & transform, const Box_Collider & collider)
-        {
-            const glm::vec3 center = glm::vec3(transform.world * glm::vec4(collider.offset, 1.f));
+    }
 
-            // Each local axis, scaled and rotated, contributes |axis| * half extent to the world half size.
-            const glm::mat3 axes (transform.world);
+    Aabb Collision_System::compute_world_box (const Transform & transform, const Box_Collider & collider)
+    {
+        const glm::vec3 center = glm::vec3(transform.world * glm::vec4(collider.offset, 1.f));
 
-            const glm::vec3 half = glm::abs (axes[0]) * collider.half_extents.x
-                                 + glm::abs (axes[1]) * collider.half_extents.y
-                                 + glm::abs (axes[2]) * collider.half_extents.z;
+        // Each local axis, scaled and rotated, contributes |axis| * half extent to the world half size.
+        const glm::mat3 axes (transform.world);
 
-            return { center - half, center + half };
-        }
+        const glm::vec3 half = glm::abs (axes[0]) * collider.half_extents.x
+                             + glm::abs (axes[1]) * collider.half_extents.y
+                             + glm::abs (axes[2]) * collider.half_extents.z;
 
+        return { center - half, center + half };
     }
 
     Collision_System::Collision_System (Registry & given_registry, Event_Bus & given_events, Transform_System & given_transforms)
@@ -112,7 +111,7 @@ namespace engine
         registry.view< Transform, Box_Collider >().each ([this] (Entity entity, Transform & transform, Box_Collider & collider)
         {
             collider.last_push = glm::vec3(0.f);
-            bodies.push_back ({ entity, world_box (transform, collider), &collider });
+            bodies.push_back ({ entity, compute_world_box (transform, collider), &collider });
         });
 
         // The view walks pools backwards; sort for a stable, creation-ordered result.

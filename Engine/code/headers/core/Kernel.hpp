@@ -19,7 +19,18 @@ namespace engine
     /// next frame, so the list never changes while it is being iterated.
     class Kernel
     {
+    public:
+
+        struct Task_Timing
+        {
+            const Task * task;
+            float        milliseconds;          // smoothed over recent frames
+        };
+
+    private:
+
         std::vector< Task * > tasks;            // sorted by priority, stable for equal values
+        std::vector< float  > task_times;       // parallel to tasks, smoothed milliseconds
         std::vector< Task * > pending_add;
         std::vector< Task * > pending_remove;
 
@@ -52,6 +63,9 @@ namespace engine
         float         get_fps         () const { return fps;         }
         std::uint64_t get_frame_count () const { return frame_count; }
         std::size_t   get_task_count  () const { return tasks.size (); }
+
+        /// How long each task took to execute, in order, smoothed over recent frames.
+        std::vector< Task_Timing > get_task_timings () const;
 
         void set_max_delta_time (float seconds) { max_delta_time = seconds; }
 

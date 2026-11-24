@@ -32,6 +32,7 @@ namespace engine
         collision_system(registry, events, transform_system),
         event_system    (events),
         render_system   (registry, renderer, window),
+        debug_ui_system (registry, kernel, window, input, input_system, renderer, render_system, collision_system),
         present_system  (window)
     {
         kernel.add (input_system    );
@@ -41,6 +42,7 @@ namespace engine
         kernel.add (collision_system);
         kernel.add (event_system    );
         kernel.add (render_system   );
+        kernel.add (debug_ui_system );
         kernel.add (present_system  );
     }
 

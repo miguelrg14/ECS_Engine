@@ -33,7 +33,6 @@ class Demo_Scene final : public engine::Task
 
     engine::Subscription landed_subscription;
 
-    bool  wireframe   = false;
     float title_timer = 0.f;
 
 public:
@@ -72,4 +71,6 @@ private:
     void toggle_crowd  ();
     void handle_input  ();
     void update_title  ();
+    void draw_hud      ();
+    void add_debug_ui  ();
 };

@@ -27,8 +27,10 @@ namespace engine
 
     void Render_System::execute (float )
     {
+        Render_Command::set_wireframe   (false);       // clear and UI always filled
         Render_Command::set_clear_color (glm::vec4(fog.enabled ? fog.color : clear_color, 1.f));
         Render_Command::clear ();
+        Render_Command::set_wireframe   (wireframe);
 
         glm::mat4 view, projection;
 
@@ -51,6 +53,8 @@ namespace engine
                 renderer.submit (*mesh_renderer.mesh, *mesh_renderer.material, transform.world);
             }
         });
+
+        Render_Command::set_wireframe (false);
     }
 
     bool Render_System::find_camera (glm::mat4 & view, glm::mat4 & projection)

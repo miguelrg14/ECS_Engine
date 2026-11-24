@@ -90,6 +90,7 @@
     <ClInclude Include="..\code\headers\scripting\Script.hpp" />
     <ClInclude Include="..\code\headers\scripting\Script_Component.hpp" />
     <ClInclude Include="..\code\headers\systems\Collision_System.hpp" />
+    <ClInclude Include="..\code\headers\systems\Debug_UI_System.hpp" />
     <ClInclude Include="..\code\headers\systems\Event_System.hpp" />
     <ClInclude Include="..\code\headers\systems\Input_System.hpp" />
     <ClInclude Include="..\code\headers\systems\Movement_System.hpp" />
@@ -115,6 +116,7 @@
     <ClCompile Include="..\code\sources\resources\Resource_Manager.cpp" />
     <ClCompile Include="..\code\sources\scripting\Script.cpp" />
     <ClCompile Include="..\code\sources\systems\Collision_System.cpp" />
+    <ClCompile Include="..\code\sources\systems\Debug_UI_System.cpp" />
     <ClCompile Include="..\code\sources\systems\Input_System.cpp" />
     <ClCompile Include="..\code\sources\systems\Movement_System.cpp" />
     <ClCompile Include="..\code\sources\systems\Render_System.cpp" />
@@ -124,6 +126,30 @@
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="..\..\libraries\imgui\source\imgui.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <SDLCheck>false</SDLCheck>
+    </ClCompile>
+    <ClCompile Include="..\..\libraries\imgui\source\imgui_draw.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <SDLCheck>false</SDLCheck>
+    </ClCompile>
+    <ClCompile Include="..\..\libraries\imgui\source\imgui_tables.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <SDLCheck>false</SDLCheck>
+    </ClCompile>
+    <ClCompile Include="..\..\libraries\imgui\source\imgui_widgets.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <SDLCheck>false</SDLCheck>
+    </ClCompile>
+    <ClCompile Include="..\..\libraries\imgui\source\imgui_impl_sdl2.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <SDLCheck>false</SDLCheck>
+    </ClCompile>
+    <ClCompile Include="..\..\libraries\imgui\source\imgui_impl_opengl3.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
     <ClCompile Include="..\..\libraries\glad\src\glad.c">
       <CompileAs>CompileAsC</CompileAs>

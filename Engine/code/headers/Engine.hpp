@@ -30,6 +30,7 @@
 #include "scripting/Script.hpp"
 #include "scripting/Script_Component.hpp"
 #include "systems/Collision_System.hpp"
+#include "systems/Debug_UI_System.hpp"
 #include "systems/Movement_System.hpp"
 #include "systems/Render_System.hpp"
 #include "systems/Script_System.hpp"
