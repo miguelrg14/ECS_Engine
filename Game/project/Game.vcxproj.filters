@@ -10,24 +10,51 @@
     <Filter Include="code">
       <UniqueIdentifier>{584DBE41-97A6-5466-9B08-5C3FC08A2997}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\scripts">
+      <UniqueIdentifier>{7363BB3C-7661-5169-BE4F-04275914BABB}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\code\Demo_Scene.hpp">
       <Filter>code</Filter>
     </ClInclude>
-    <ClInclude Include="..\code\Fly_Camera.hpp">
+    <ClInclude Include="..\code\Game_Events.hpp">
       <Filter>code</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\scripts\Bob.hpp">
+      <Filter>code\scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\scripts\Camera_Math.hpp">
+      <Filter>code\scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\scripts\Fly_Camera.hpp">
+      <Filter>code\scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\scripts\Follow_Camera.hpp">
+      <Filter>code\scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\scripts\Player_Controller.hpp">
+      <Filter>code\scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\scripts\Squash_And_Stretch.hpp">
+      <Filter>code\scripts</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\code\Demo_Scene.cpp">
       <Filter>code</Filter>
     </ClCompile>
-    <ClCompile Include="..\code\Fly_Camera.cpp">
-      <Filter>code</Filter>
-    </ClCompile>
     <ClCompile Include="..\code\main.cpp">
       <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\scripts\Fly_Camera.cpp">
+      <Filter>code\scripts</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\scripts\Follow_Camera.cpp">
+      <Filter>code\scripts</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\scripts\Player_Controller.cpp">
+      <Filter>code\scripts</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -4,11 +4,16 @@ A small game engine written from scratch in **C++20 and modern OpenGL 3.3 (Core 
 
 It revisits the final assignment of the *Graphics Engines and Plugins* course (Game Design & Development degree): a task kernel, an entity/component subsystem and a messaging subsystem, split into an `Engine` static library and a `Game` executable. This version replaces the object-oriented entity model with a real ECS (entities as IDs, components stored contiguously per type, systems that iterate over views) and draws with my own renderer from [VS_3D-Renderer](https://github.com/miguelrg14/VS_3D-Renderer).
 
-> **Status:** phase 5 of 8. The test scene is made of entities: transforms with parent/child hierarchy, mesh renderers, camera and light components, drawn by the engine's systems. See the [roadmap](#roadmap).
+> **Status:** phase 6 of 8. Gameplay logic lives in native C++ scripts attached to entities, and scripts talk to each other through a typed event bus. The demo has a controllable character with a third-person camera. See the [roadmap](#roadmap).
+
+<p align="center">
+  <img src="docs/images/06-player.png" alt="Phase 6: a blocky orange character with a checker-textured head walks across the wooden floor, followed by a third-person camera, next to the umbrella, the floating cube and the plant" width="800">
+  <br><em>Phase 6 · player character driven by scripts, third-person camera</em>
+</p>
 
 <p align="center">
   <img src="docs/images/05-ecs-scene.png" alt="Phase 5: the test scene as entities, with a field of 1,000 spinning coloured cubes behind an umbrella, a potted plant and a UV-checker cube with an orbiting child" width="800">
-  <br><em>Phase 5 · the test scene as entities, with the 1,000-cube field turned on</em>
+  <br><em>Phase 5 · the 1,000-cube stress test (key C)</em>
 </p>
 
 ---
@@ -22,7 +27,7 @@ It revisits the final assignment of the *Graphics Engines and Plugins* course (G
 | 3 · Renderer module | Shaders, meshes, textures and materials ported from VS_3D-Renderer, resource cache, .obj models | ✅ Done |
 | 4 · ECS core | Sparse-set component pools, `Registry`, `view<A, B>()`, unit tests | ✅ Done |
 | 5 · Core components and systems | Transform hierarchy, camera, lights, render system | ✅ Done |
-| 6 · Scripts and events | Native scripts, typed event bus, player controller | ⏳ |
+| 6 · Scripts and events | Native scripts, typed event bus, player controller | ✅ Done |
 | 7 · Collisions and demo | AABB colliders and triggers, small playable demo | ⏳ |
 | 8 · Debug tools and release | Dear ImGui entity inspector, docs, packaged build | ⏳ |
 
@@ -54,6 +59,32 @@ registry.add< engine::Velocity      >(cube, glm::vec3(0.f), glm::vec3(0.f, 0.8f,
 
 engine::Entity moon = registry.create ();
 registry.add< engine::Transform     >(moon).parent = cube;                                  // orbits with it
+```
+
+Behaviour goes in scripts, and scripts communicate through events without knowing each other:
+
+```cpp
+struct Landed { engine::Entity entity; float impact_speed; };          // any struct is an event
+
+class Player_Controller : public engine::Script
+{
+    void on_update (float dt) override
+    {
+        // ... move, jump, fall ...
+        if (just_landed) publish (Landed{ entity (), fall_speed });
+    }
+};
+
+class Squash_And_Stretch : public engine::Script
+{
+    void on_create () override
+    {
+        subscribe< Landed >([this] (const Landed & event) { if (event.entity == entity ()) squash (event.impact_speed); });
+    }
+};
+
+registry.add< engine::Script_Component >(player).bind< Player_Controller >(camera);
+registry.get< engine::Script_Component >(player).bind< Squash_And_Stretch >();
 ```
 
 Entities are 32-bit IDs with a generation counter, so a handle to a destroyed entity is detected instead of reaching the entity that reused its slot. Each component type is stored in its own sparse set: add, remove and lookup are O(1), and components sit contiguously in memory. Details in [docs/architecture.md](docs/architecture.md#ecs-core-phase-4).
@@ -117,14 +148,16 @@ See **[docs/building.md](docs/building.md)** for details and troubleshooting.
 
 ### Controls
 
-The current build is the phase 5 test scene:
+The current build is the phase 6 demo:
 
 | Input | Action |
 |---|---|
-| Right mouse (hold) + move | Look around |
-| `W` `A` `S` `D` | Move |
-| `Q` / `E` | Down / up |
-| `Shift` (hold) | Move faster |
+| `W` `A` `S` `D` | Move the character (relative to the camera) |
+| `Shift` (hold) | Run |
+| `Space` | Jump |
+| Right mouse (hold) + move | Orbit the camera around the character |
+| Mouse wheel | Zoom |
+| `Tab` | Switch to the free fly camera and back (fly: `W` `A` `S` `D` + `Q` / `E`, right mouse to look) |
 | `C` | Add / remove a field of 1,000 spinning cubes |
 | `L` | Pause / resume the light |
 | `F` | Toggle fog |
@@ -132,7 +165,7 @@ The current build is the phase 5 test scene:
 | `V` | Toggle vsync |
 | `Esc` | Quit |
 
-The window title shows FPS, frame time, entities, draw calls and triangles.
+The window title shows FPS, frame time, entities, draw calls, the active camera and how many times the character has landed.
 
 ---
 

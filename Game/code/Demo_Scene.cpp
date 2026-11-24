@@ -3,7 +3,13 @@
 
 #include "Demo_Scene.hpp"
 
-#include <cmath>
+#include "Game_Events.hpp"
+#include "scripts/Bob.hpp"
+#include "scripts/Fly_Camera.hpp"
+#include "scripts/Follow_Camera.hpp"
+#include "scripts/Player_Controller.hpp"
+#include "scripts/Squash_And_Stretch.hpp"
+
 #include <cstdio>
 #include <random>
 
@@ -40,7 +46,7 @@ void Demo_Scene::initialize ()
     Resource_Manager & resources = application.get_resources ();
     Registry         & registry  = application.get_registry  ();
 
-    auto lit   = resources.shader   ("lit");
+    auto lit        = resources.shader   ("lit");
     auto cube_mesh  = resources.add_mesh ("cube",   Mesh::create_cube  ());
     auto plane_mesh = resources.add_mesh ("ground", Mesh::create_plane (60.f));
 
@@ -59,7 +65,6 @@ void Demo_Scene::initialize ()
     auto light_material     = make_material (lit, nullptr, { 1.f, 0.9f, 0.6f });
     light_material->receives_lighting = false;
 
-    // Six shared materials for the crowd: a thousand cubes, six materials.
     const glm::vec3 palette[] =
     {
         { 0.90f, 0.35f, 0.30f }, { 0.95f, 0.70f, 0.25f }, { 0.40f, 0.75f, 0.40f },
@@ -74,48 +79,86 @@ void Demo_Scene::initialize ()
     create_object ("Umbrella", resources.mesh ("models/Umbrella.obj"), umbrella_material, { -2.5f, 0.f, 0.5f }, glm::vec3(1.4f));
     create_object ("Plant",    resources.mesh ("models/Plant.obj"),    plant_material,    { 3.f, 0.f, -1.5f },  glm::vec3(0.4f));
 
-    // Spinning cube with an orbiting child: the child follows because its
-    // world matrix is the parent's world matrix times its own local one.
+    // Floating, spinning cube with an orbiting child.
 
-    cube = create_object ("Cube", cube_mesh, checker_material, { 0.f, 1.2f, 0.f });
-    registry.add< Velocity >(cube, glm::vec3(0.f), glm::vec3(0.f, 0.8f, 0.f));
+    const Entity cube = create_object ("Cube", cube_mesh, checker_material, { 0.f, 1.2f, -1.f });
+    registry.add< Velocity         >(cube, glm::vec3(0.f), glm::vec3(0.f, 0.8f, 0.f));
+    registry.add< Script_Component >(cube).bind< Bob >(0.15f, 2.f);
 
-    const Entity moon = create_object ("Moon", cube_mesh, checker_material, { 1.3f, 0.f, 0.f }, glm::vec3(0.3f));
-    registry.get< Transform >(moon).parent = cube;
+    const Entity moon = create_object ("Moon", cube_mesh, checker_material, { 1.3f, 0.f, 0.f }, glm::vec3(0.3f), cube);
     registry.add< Velocity >(moon, glm::vec3(0.f), glm::vec3(1.f, 2.f, 0.f));
 
-    // The light hangs from a spinning pivot, so it orbits the scene.
+    // Light hanging from a spinning pivot.
 
     light_pivot = registry.create ();
     registry.add< Name      >(light_pivot, "Light pivot");
     registry.add< Transform >(light_pivot).position = { 0.f, 4.f, 0.f };
     registry.add< Velocity  >(light_pivot, glm::vec3(0.f), glm::vec3(0.f, 0.6f, 0.f));
 
-    const Entity light = create_object ("Light", cube_mesh, light_material, { 4.f, 0.f, 0.f }, glm::vec3(0.2f));
-    registry.get< Transform >(light).parent = light_pivot;
+    const Entity light = create_object ("Light", cube_mesh, light_material, { 4.f, 0.f, 0.f }, glm::vec3(0.2f), light_pivot);
     registry.add< Light_Component >(light, glm::vec3(1.f, 0.95f, 0.85f), 1.f);
 
-    // Camera.
+    // Cameras: the follow camera starts active; Tab switches to the fly camera.
 
-    camera = registry.create ();
-    registry.add< Name             >(camera, "Camera");
-    registry.add< Transform        >(camera);
-    registry.add< Camera_Component >(camera);
+    follow_camera = registry.create ();
+    registry.add< Name             >(follow_camera, "Follow camera");
+    registry.add< Transform        >(follow_camera);
+    registry.add< Camera_Component >(follow_camera);
 
-    camera_controller.look_at (registry.get< Transform >(camera), { 0.f, 2.2f, 7.5f }, { 0.f, 1.2f, 0.f });
+    fly_camera = registry.create ();
+    registry.add< Name             >(fly_camera, "Fly camera");
+    registry.add< Transform        >(fly_camera);
+    registry.add< Camera_Component >(fly_camera).active = false;
+    registry.add< Script_Component >(fly_camera).bind< Fly_Camera >();
 
-    log_info ("Demo_Scene: %zu entities. Right mouse + WASD/QE = fly, C = 1000 cubes, L = light, F = fog, X = wireframe, V = vsync, Esc = quit",
+    build_player (cube_mesh, lit);
+
+    registry.add< Script_Component >(follow_camera).bind< Follow_Camera >(player);
+
+    // A game-level listener: the scene counts landings without touching the player's code.
+
+    landed_subscription = application.get_events ().subscribe< Landed >([this] (const Landed & event)
+    {
+        ++landings;
+        log_info ("Demo_Scene: landing #%u at %.1f units/s", landings, double(event.impact_speed));
+    });
+
+    log_info ("Demo_Scene: %zu entities. WASD = move, Space = jump, Shift = run, right mouse = orbit, wheel = zoom, "
+              "Tab = fly camera, C = 1000 cubes, L = light, F = fog, X = wireframe, V = vsync, Esc = quit",
               registry.alive_count ());
+}
+
+void Demo_Scene::build_player (std::shared_ptr< Mesh > cube_mesh, std::shared_ptr< Shader > shader)
+{
+    Registry & registry = application.get_registry ();
+
+    auto body_material = make_material (shader, nullptr, { 0.95f, 0.55f, 0.20f });
+    auto head_material = make_material (shader, application.get_resources ().texture ("textures/uv-checker.png"));
+    auto eye_material  = make_material (shader, nullptr, { 0.1f, 0.1f, 0.12f });
+
+    // The root sits at the feet and carries the scripts; the visible parts are children,
+    // so turning, jumping and squashing the root moves the whole character.
+
+    player = registry.create ();
+    registry.add< Name      >(player, "Player");
+    registry.add< Transform >(player).position = { 0.f, 0.f, 3.f };
+
+    Script_Component & scripts = registry.add< Script_Component >(player);
+    scripts.bind< Player_Controller  >(follow_camera);
+    scripts.bind< Squash_And_Stretch >();
+
+    create_object ("Player body", cube_mesh, body_material, { 0.f, 0.55f, 0.f }, { 0.7f, 1.1f, 0.45f }, player);
+
+    const Entity head = create_object ("Player head", cube_mesh, head_material, { 0.f, 1.35f, 0.f }, glm::vec3(0.45f), player);
+
+    // Eyes on the head's -Z face, so they show which way the player faces.
+    create_object ("Player eye L", cube_mesh, eye_material, { -0.18f, 0.08f, -0.5f }, { 0.16f, 0.16f, 0.06f }, head);
+    create_object ("Player eye R", cube_mesh, eye_material, {  0.18f, 0.08f, -0.5f }, { 0.16f, 0.16f, 0.06f }, head);
 }
 
 void Demo_Scene::execute (float delta_time)
 {
-    time += delta_time;
-
-    handle_input (delta_time);
-
-    // Gameplay-style logic still lives here until scripts exist (phase 6).
-    application.get_registry ().get< Transform >(cube).position.y = 1.2f + 0.15f * std::sin (time * 2.f);
+    handle_input ();
 
     title_timer += delta_time;
 
@@ -128,6 +171,7 @@ void Demo_Scene::execute (float delta_time)
 
 void Demo_Scene::finalize ()
 {
+    application.get_events ().unsubscribe (landed_subscription);
     application.get_window ().set_mouse_captured (false);
     Render_Command::set_wireframe (false);
 }
@@ -138,7 +182,8 @@ Entity Demo_Scene::create_object
     std::shared_ptr< Mesh > mesh,
     std::shared_ptr< Material > material,
     const glm::vec3 & position,
-    const glm::vec3 & scale
+    const glm::vec3 & scale,
+    Entity parent
 )
 {
     Registry & registry = application.get_registry ();
@@ -150,10 +195,32 @@ Entity Demo_Scene::create_object
     Transform & transform = registry.add< Transform >(entity);
     transform.position = position;
     transform.scale    = scale;
+    transform.parent   = parent;
 
     registry.add< Mesh_Renderer >(entity, std::move(mesh), std::move(material));
 
     return entity;
+}
+
+void Demo_Scene::switch_camera ()
+{
+    Registry & registry = application.get_registry ();
+
+    Camera_Component & follow = registry.get< Camera_Component >(follow_camera);
+    Camera_Component & fly    = registry.get< Camera_Component >(fly_camera);
+
+    if (follow.active)
+    {
+        // The fly camera starts where the follow camera is, looking the same way.
+        registry.get< Transform >(fly_camera) = registry.get< Transform >(follow_camera);
+    }
+
+    follow.active = !follow.active;
+    fly   .active = !fly.active;
+
+    application.get_window ().set_mouse_captured (false);
+
+    log_info ("Demo_Scene: %s camera", follow.active ? "follow" : "fly");
 }
 
 void Demo_Scene::toggle_crowd ()
@@ -173,8 +240,6 @@ void Demo_Scene::toggle_crowd ()
 
     std::mt19937 random (1234);         // fixed seed: the same field every time
     std::uniform_real_distribution< float > spin (-2.f, 2.f);
-
-    // 40 x 25 grid behind the props.
 
     for (int row = 0; row < 25; ++row)
     {
@@ -197,13 +262,14 @@ void Demo_Scene::toggle_crowd ()
     log_info ("Demo_Scene: added %zu cubes, %zu entities", crowd.size (), registry.alive_count ());
 }
 
-void Demo_Scene::handle_input (float delta_time)
+void Demo_Scene::handle_input ()
 {
     const Input & input    = application.get_input    ();
     Window      & window   = application.get_window   ();
     Registry    & registry = application.get_registry ();
 
     if (input.was_key_pressed (SDL_SCANCODE_ESCAPE)) application.quit ();
+    if (input.was_key_pressed (SDL_SCANCODE_TAB))    switch_camera ();
     if (input.was_key_pressed (SDL_SCANCODE_C))      toggle_crowd ();
     if (input.was_key_pressed (SDL_SCANCODE_V))      window.set_vsync (!window.is_vsync ());
 
@@ -225,25 +291,24 @@ void Demo_Scene::handle_input (float delta_time)
         wireframe = !wireframe;
         Render_Command::set_wireframe (wireframe);
     }
-
-    camera_controller.update (registry.get< Transform >(camera), input, window, delta_time);
 }
 
 void Demo_Scene::update_title ()
 {
     const float fps = application.get_kernel ().get_fps ();
 
-    char title[192];
+    char title[224];
 
     std::snprintf
     (
         title, sizeof(title),
-        "ECS Engine  |  %.0f FPS  |  %.2f ms  |  %zu entities  |  %u draw calls  |  %u triangles",
+        "ECS Engine  |  %.0f FPS  |  %.2f ms  |  %zu entities  |  %u draw calls  |  %s camera  |  %u landings",
         fps,
         fps > 0.f ? 1000.f / fps : 0.f,
         application.get_registry ().alive_count (),
         application.get_renderer ().get_draw_calls (),
-        application.get_renderer ().get_triangles  ()
+        application.get_registry ().get< Camera_Component >(follow_camera).active ? "follow" : "fly",
+        landings
     );
 
     application.get_window ().set_title (title);

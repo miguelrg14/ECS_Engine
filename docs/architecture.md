@@ -51,11 +51,11 @@ When `stop()` is called the loop ends and every task is finalized in reverse ord
 | Priority | Task | Phase |
 |---|---|---|
 | 10 | `Input_System` — SDL events → `Input`, resize, window close | 2 |
-| 20 | Scripts (the test scene `Demo_Scene` runs here for now) | 2, 6 |
+| 20 | `Script_System`, then the game's `Demo_Scene` task | 6 |
 | 30 | `Movement_System` | 5 |
 | 40 | Collision | 7 |
 | 50 | `Transform_System` | 5 |
-| 60 | Events | 6 |
+| 60 | `Event_System` | 6 |
 | 90 | `Render_System` | 5 |
 | 100 | Debug UI | 8 |
 | 1000 | `Present_System` — swaps the window buffers | 2 |
@@ -120,7 +120,7 @@ Owns the entity slots, the free list and one pool per component type. A type get
 
 ### Tests
 
-`Tests/` holds a minimal test runner (`TEST` / `CHECK`). `Test_Registry.cpp` has 17 tests: unique and valid handles, version reuse, `clear`, add/get/remove, swap-and-pop integrity, destroy removing every component, view membership, smallest-pool selection, destroying during iteration, and 10,000 entities with half destroyed. `Test_Systems.cpp` (phase 5) has 10 more for the transform hierarchy (parent rotation and scale, creation order, destroyed parents, cycles) and for `Movement_System`.
+`Tests/` holds a minimal test runner (`TEST` / `CHECK`). `Test_Registry.cpp` has 17 tests: unique and valid handles, version reuse, `clear`, add/get/remove, swap-and-pop integrity, destroy removing every component, view membership, smallest-pool selection, destroying during iteration, and 10,000 entities with half destroyed. `Test_Systems.cpp` (phase 5) has 10 more for the transform hierarchy (parent rotation and scale, creation order, destroyed parents, cycles) and for `Movement_System`. `Test_Events_Scripts.cpp` (phase 6) has 14 more: event queueing and delivery, unsubscribing from inside a handler, events published during dispatch, the script lifecycle, deferred destruction, automatic unsubscription and scripts created during an update.
 
 ### Differences from the original assignment
 
@@ -149,6 +149,44 @@ All of them derive from `System`, a `Task` that holds the `Registry`. `Applicati
 
 Destroying a parent does not destroy its children: they become roots. Destroying a whole branch is left to the game for now.
 
+## Scripts and events (phase 6)
+
+### Scripts
+
+A script is a C++ class derived from `engine::Script`, attached to an entity through a `Script_Component`. An entity can have several scripts; they run in the order they were bound.
+
+| Callback | When |
+|---|---|
+| `on_create()` | Once, the first frame the script runs |
+| `on_update(dt)` | Every frame (`Script_System`, priority 20) |
+| `on_destroy()` | When the entity is destroyed with `destroy()`, or when the game ends |
+
+From inside a script: `entity()`, `registry()`, `get<T>()` / `try_get<T>()` / `has<T>()` for its own components, `input()`, `window()`, `resources()`, `publish(event)`, `subscribe<T>(handler)` and `destroy(entity)`.
+
+`Script_System` lists the entities with scripts before running any of them, and looks each `Script_Component` up again before every script, so a script can create entities and bind scripts (they start the next frame) without invalidating the loop. `destroy()` is deferred to the end of the pass: calling `registry().destroy(entity())` from a script would delete the script while it is running.
+
+### Event bus
+
+`Event_Bus` is typed: an event is any struct, and handlers receive it as `const T &`. There is no base class and no string id, so a typo is a compile error.
+
+- `publish(event)` queues it; `Event_System` (priority 60) delivers every queued event once per frame, after scripts, movement and transforms and before rendering. The sender never runs other code in the middle of its own update.
+- Events published while dispatching wait for the next dispatch, so a handler that publishes cannot create an endless loop within one frame.
+- `emit(event)` calls the handlers immediately, for the rare case that needs it.
+- Handlers may subscribe and unsubscribe while being called: removals are marked and applied once no handler of that type is running, and new handlers are added after the current dispatch.
+- A script's subscriptions are cancelled automatically when the script is deleted. `Application` declares the bus before the registry, so it outlives every script.
+
+### The demo
+
+| Script | On | Does |
+|---|---|---|
+| `Player_Controller` | Player root | Moves relative to the camera, turns towards the movement, jumps with gravity. Publishes `Jumped` and `Landed`. |
+| `Squash_And_Stretch` | Player root | Listens to `Jumped` / `Landed` and deforms the root's scale; it does not know how the player moves. |
+| `Follow_Camera` | Follow camera | Orbits the player with the mouse, zooms with the wheel, eases towards its ideal position. |
+| `Fly_Camera` | Fly camera | Free debug camera, active after `Tab`. |
+| `Bob` | Checker cube | Moves it up and down. |
+
+`Demo_Scene` also subscribes to `Landed` and counts landings: a second listener of the same event, added without touching the player.
+
 ## Modules so far
 
 | Module | Files | Responsibility |
@@ -165,6 +203,11 @@ Destroying a parent does not destroy its children: they become roots. Destroying
 | `systems/Movement_System` | `Movement_System.hpp/.cpp` | Applies `Velocity`. |
 | `systems/Transform_System` | `Transform_System.hpp/.cpp` | World matrices and hierarchy. |
 | `systems/Render_System` | `Render_System.hpp/.cpp` | Camera, light and mesh entities → `Renderer`. |
+| `scripting/Script` | `Script.hpp/.cpp` | Base class of native scripts. |
+| `scripting/Script_Component` | `Script_Component.hpp` | Scripts attached to an entity. |
+| `systems/Script_System` | `Script_System.hpp/.cpp` | Runs scripts, deferred destruction. |
+| `events/Event_Bus` | `Event_Bus.hpp` | Typed publish / subscribe with a per-frame queue. |
+| `systems/Event_System` | `Event_System.hpp` | Dispatches the queued events. |
 | `core/Task` | `Task.hpp` | Base class of every per-frame task: name, priority, `initialize` / `execute(dt)` / `finalize`. Priority constants. |
 | `core/Kernel` | `Kernel.hpp/.cpp` | Main loop, priority-sorted task list, deferred add/remove, delta time, FPS. |
 | `core/Timer` | `Timer.hpp` | Elapsed seconds over `std::chrono::steady_clock`. |
@@ -174,4 +217,4 @@ Destroying a parent does not destroy its children: they become roots. Destroying
 | `systems/Present_System` | `Present_System.hpp` | Swaps the window buffers at the end of the frame. |
 | `renderer/*` | `Shader`, `Texture`, `Mesh`, `Model_Loader`, `Material`, `Camera`, `Renderer`, `Render_Command` | See the renderer section above. |
 | `resources/Resource_Manager` | `Resource_Manager.hpp/.cpp` | Asset cache by path. |
-| `Game` | `main.cpp`, `Demo_Scene`, `Fly_Camera` | Builds the test scene as entities and handles its input; the logic moves into scripts in phase 6. |
+| `Game` | `main.cpp`, `Demo_Scene`, `Game_Events.hpp`, `scripts/` | Builds the demo scene and handles global keys; per-entity logic is in scripts. |

@@ -75,6 +75,7 @@
     <ClInclude Include="..\code\headers\ecs\Entity.hpp" />
     <ClInclude Include="..\code\headers\ecs\Registry.hpp" />
     <ClInclude Include="..\code\headers\ecs\View.hpp" />
+    <ClInclude Include="..\code\headers\events\Event_Bus.hpp" />
     <ClInclude Include="..\code\headers\renderer\Camera.hpp" />
     <ClInclude Include="..\code\headers\renderer\Material.hpp" />
     <ClInclude Include="..\code\headers\renderer\Mesh.hpp" />
@@ -84,10 +85,14 @@
     <ClInclude Include="..\code\headers\renderer\Shader.hpp" />
     <ClInclude Include="..\code\headers\renderer\Texture.hpp" />
     <ClInclude Include="..\code\headers\resources\Resource_Manager.hpp" />
+    <ClInclude Include="..\code\headers\scripting\Script.hpp" />
+    <ClInclude Include="..\code\headers\scripting\Script_Component.hpp" />
+    <ClInclude Include="..\code\headers\systems\Event_System.hpp" />
     <ClInclude Include="..\code\headers\systems\Input_System.hpp" />
     <ClInclude Include="..\code\headers\systems\Movement_System.hpp" />
     <ClInclude Include="..\code\headers\systems\Present_System.hpp" />
     <ClInclude Include="..\code\headers\systems\Render_System.hpp" />
+    <ClInclude Include="..\code\headers\systems\Script_System.hpp" />
     <ClInclude Include="..\code\headers\systems\System.hpp" />
     <ClInclude Include="..\code\headers\systems\Transform_System.hpp" />
   </ItemGroup>
@@ -105,9 +110,11 @@
     <ClCompile Include="..\code\sources\renderer\Shader.cpp" />
     <ClCompile Include="..\code\sources\renderer\Texture.cpp" />
     <ClCompile Include="..\code\sources\resources\Resource_Manager.cpp" />
+    <ClCompile Include="..\code\sources\scripting\Script.cpp" />
     <ClCompile Include="..\code\sources\systems\Input_System.cpp" />
     <ClCompile Include="..\code\sources\systems\Movement_System.cpp" />
     <ClCompile Include="..\code\sources\systems\Render_System.cpp" />
+    <ClCompile Include="..\code\sources\systems\Script_System.cpp" />
     <ClCompile Include="..\code\sources\systems\Transform_System.cpp" />
     <ClCompile Include="..\code\sources\third_party\third_party.cpp">
       <WarningLevel>TurnOffAllWarnings</WarningLevel>

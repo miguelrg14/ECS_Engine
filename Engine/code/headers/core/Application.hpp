@@ -7,12 +7,15 @@
 #include "Kernel.hpp"
 #include "Window.hpp"
 #include "ecs/Registry.hpp"
+#include "events/Event_Bus.hpp"
 #include "renderer/Renderer.hpp"
 #include "resources/Resource_Manager.hpp"
+#include "systems/Event_System.hpp"
 #include "systems/Input_System.hpp"
 #include "systems/Movement_System.hpp"
 #include "systems/Present_System.hpp"
 #include "systems/Render_System.hpp"
+#include "systems/Script_System.hpp"
 #include "systems/Transform_System.hpp"
 
 namespace engine
@@ -35,13 +38,16 @@ namespace engine
         Window           window;
         Resource_Manager resources;      // after the window: GPU objects die before the GL context
         Renderer         renderer;
+        Event_Bus        events;         // before the registry: scripts unsubscribe when they are deleted
         Registry         registry;       // after renderer and resources: components hold meshes and materials
         Input            input;
         Kernel           kernel;
 
         Input_System     input_system;
+        Script_System    script_system;
         Movement_System  movement_system;
         Transform_System transform_system;
+        Event_System     event_system;
         Render_System    render_system;
         Present_System   present_system;
 
@@ -59,6 +65,7 @@ namespace engine
         Resource_Manager & get_resources ()       { return resources; }
         Renderer         & get_renderer  ()       { return renderer;  }
         Registry         & get_registry  ()       { return registry;  }
+        Event_Bus        & get_events    ()       { return events;    }
         Render_System    & get_render_system ()   { return render_system; }
         const Input  & get_input  () const { return input;  }
         Kernel       & get_kernel ()       { return kernel; }

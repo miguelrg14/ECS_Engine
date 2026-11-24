@@ -11,3 +11,4 @@
 #include "components/Name.hpp"
 #include "components/Transform.hpp"
 #include "components/Velocity.hpp"
+#include "scripting/Script_Component.hpp"

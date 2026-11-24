@@ -26,14 +26,18 @@ namespace engine
     :
         window          (settings),
         input_system    (input, window, kernel),
+        script_system   (registry, events, input, &window, &resources),
         movement_system (registry),
         transform_system(registry),
+        event_system    (events),
         render_system   (registry, renderer, window),
         present_system  (window)
     {
         kernel.add (input_system    );
+        kernel.add (script_system   );
         kernel.add (movement_system );
         kernel.add (transform_system);
+        kernel.add (event_system    );
         kernel.add (render_system   );
         kernel.add (present_system  );
     }
