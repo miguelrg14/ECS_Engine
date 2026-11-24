@@ -1,6 +1,6 @@
 # Architecture
 
-This document grows with each phase of the [roadmap](../README.md#roadmap).
+How the engine is put together, phase by phase. The [README](../README.md) has the overview.
 
 ## Overview
 
@@ -17,7 +17,7 @@ Engine (static library)
    └── Renderer          OpenGL 3.3: shaders, meshes, textures, materials     (phases 1, 3)
                          It does not know about the ECS; Render_System translates.
    ▼
-libraries/               SDL2 · GLAD · GLM · stb_image · tinyobjloader (Dear ImGui later)
+libraries/               SDL2 · GLAD · GLM · stb_image · tinyobjloader · Dear ImGui
 ```
 
 ## Design rules
@@ -57,7 +57,7 @@ When `stop()` is called the loop ends and every task is finalized in reverse ord
 | 55 | `Collision_System` | 7 |
 | 60 | `Event_System` | 6 |
 | 90 | `Render_System` | 5 |
-| 100 | Debug UI | 8 |
+| 100 | `Debug_UI_System` | 8 |
 | 1000 | `Present_System` — swaps the window buffers | 2 |
 
 `Input` stores the current and previous state of every key (by scancode, so WASD keeps its place on any layout) and mouse button. That gives three queries per key: held (`is_key_down`), went down this frame (`was_key_pressed`) and went up this frame (`was_key_released`). Losing focus clears the state, because keys released outside the window never send a key-up event.
@@ -120,7 +120,7 @@ Owns the entity slots, the free list and one pool per component type. A type get
 
 ### Tests
 
-`Tests/` holds a minimal test runner (`TEST` / `CHECK`). `Test_Registry.cpp` has 17 tests: unique and valid handles, version reuse, `clear`, add/get/remove, swap-and-pop integrity, destroy removing every component, view membership, smallest-pool selection, destroying during iteration, and 10,000 entities with half destroyed. `Test_Systems.cpp` (phase 5) has 10 more for the transform hierarchy (parent rotation and scale, creation order, destroyed parents, cycles) and for `Movement_System`. `Test_Events_Scripts.cpp` (phase 6) has 14 more: event queueing and delivery, unsubscribing from inside a handler, events published during dispatch, the script lifecycle, deferred destruction, automatic unsubscription and scripts created during an update. `Test_Collisions.cpp` (phase 7) has 9 more: sweep and prune against brute force on 400 random boxes, separation along the least-penetration axis, standing on a platform, two dynamic boxes, static pairs, trigger enter/exit, exit on destruction and rotated boxes.
+`Tests/` holds a minimal test runner (`TEST` / `CHECK`). `Test_Registry.cpp` has 18 tests: unique and valid handles, version reuse, `clear`, add/get/remove, swap-and-pop integrity, destroy removing every component, view membership, smallest-pool selection, destroying during iteration, 10,000 entities with half destroyed, and (phase 8) `Registry::each`. `Test_Systems.cpp` (phase 5) has 10 more for the transform hierarchy (parent rotation and scale, creation order, destroyed parents, cycles) and for `Movement_System`. `Test_Events_Scripts.cpp` (phase 6) has 14 more: event queueing and delivery, unsubscribing from inside a handler, events published during dispatch, the script lifecycle, deferred destruction, automatic unsubscription and scripts created during an update. `Test_Collisions.cpp` (phase 7) has 9 more: sweep and prune against brute force on 400 random boxes, separation along the least-penetration axis, standing on a platform, two dynamic boxes, static pairs, trigger enter/exit, exit on destruction and rotated boxes.
 
 ### Differences from the original assignment
 
@@ -225,6 +225,36 @@ Limitations, by design for this scope: axis-aligned boxes only, no continuous de
 | `Patrol` | Script on drones | Follows a loop of waypoints and faces its direction; combined with `Bob` for hovering. |
 | `Follow_Camera` | Script | Keeps the camera inside the arena by moving closer along its line of sight instead of going behind a wall. |
 
+## Debug tools and release (phase 8)
+
+### Debug_UI_System (priority 100, F1)
+
+Dear ImGui is compiled into `Engine` with its SDL2 and OpenGL 3 backends. `Debug_UI_System` runs after `Render_System`, so the tools are drawn over the finished frame.
+
+| Window | Contents |
+|---|---|
+| Stats | Frame-time graph, FPS, entities, draw calls and triangles, colliders and the boxes tested by the broad phase against all possible pairs, and the time spent in each task (the `Kernel` measures every `execute` and keeps a moving average). |
+| Scene | Every live entity (`Registry::each`) as a tree built from `Transform::parent`, with a name filter and a button to create entities. |
+| Inspector | The selected entity's components, editable while the game runs: name, transform (rotation as Euler angles, written back only when edited), velocity, mesh renderer and its shared material, camera, light, box collider, the names of its scripts. Entities can be destroyed from here. |
+| Render | Fog, clear colour, wireframe, vsync, and collider boxes drawn in wireframe (red static, green dynamic, yellow trigger) with a flat-colour shader embedded in the engine. |
+
+Two extension points let the game use the same tools without the engine knowing about it:
+
+```cpp
+debug_ui.add_overlay ([this] { draw_hud (); });                          // always drawn: the game's HUD
+
+debug_ui.add_inspector< Game_State >("Game State", [] (Game_State & state)
+{
+    ImGui::SliderFloat ("Time limit", &state.time_limit, 10.f, 300.f);  // game components in the inspector
+});
+```
+
+ImGui needs the window's events. `Input_System` accepts an event filter that sees every event first and says whether the UI took the keyboard or the mouse; if it did, that input does not reach the game (key and button releases always do, so nothing stays held).
+
+### Continuous integration and releases
+
+`.github/workflows/build.yml` runs on GitHub's Windows runners with Visual Studio 2026 on every push and pull request: it builds Debug and Release, and the `Tests` project runs the unit tests as part of the build, so a failing test fails the workflow. Pushing a tag such as `v1.0.0` also packages `ECS_Engine.exe`, `SDL2.dll`, the assets and the third-party licenses into a zip and publishes it as a GitHub release.
+
 ## Modules so far
 
 | Module | Files | Responsibility |
@@ -249,6 +279,7 @@ Limitations, by design for this scope: axis-aligned boxes only, no continuous de
 | `components/Box_Collider` | `Box_Collider.hpp` | Collision box, trigger and static flags. |
 | `events/Collision_Events` | `Collision_Events.hpp` | `Trigger_Enter`, `Trigger_Exit`, `Collision_Enter`. |
 | `systems/Collision_System` | `Collision_System.hpp/.cpp` | Sweep and prune, separation, collision events. |
+| `systems/Debug_UI_System` | `Debug_UI_System.hpp/.cpp` | Dear ImGui tools, overlays and inspectors. |
 | `core/Task` | `Task.hpp` | Base class of every per-frame task: name, priority, `initialize` / `execute(dt)` / `finalize`. Priority constants. |
 | `core/Kernel` | `Kernel.hpp/.cpp` | Main loop, priority-sorted task list, deferred add/remove, delta time, FPS. |
 | `core/Timer` | `Timer.hpp` | Elapsed seconds over `std::chrono::steady_clock`. |

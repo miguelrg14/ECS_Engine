@@ -17,6 +17,19 @@
 
 `Tests` is a console project in the same solution. It links `Engine` and its post-build step runs the test executable, so building the solution runs the tests, and a failing test makes the build fail with the test's name, file and line in the Output window. To run them by hand: `binaries/<Configuration>/ECS_Engine_Tests.exe`.
 
+## Continuous integration
+
+Every push to `main` runs [`.github/workflows/build.yml`](../.github/workflows/build.yml) on a GitHub Windows runner with Visual Studio 2026: Debug and Release builds plus the unit tests. The badge at the top of the README shows the result of the last run.
+
+## Publishing a release
+
+```text
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The workflow builds Release, packages `ECS_Engine.exe`, `SDL2.dll`, `assets/`, the README, the license and the third-party licenses into `ECS_Engine-windows-x64.zip`, and publishes it as a GitHub release for that tag.
+
 ## Where things go
 
 | Path | Content |

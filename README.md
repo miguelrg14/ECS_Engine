@@ -1,67 +1,103 @@
 # ECS Engine
 
-A small game engine written from scratch in **C++20 and modern OpenGL 3.3 (Core Profile)**, built around a data-oriented **Entity Component System**.
+[![Build](https://github.com/miguelrg14/ECS_Engine/actions/workflows/build.yml/badge.svg)](https://github.com/miguelrg14/ECS_Engine/actions/workflows/build.yml)
 
-It revisits the final assignment of the *Graphics Engines and Plugins* course (Game Design & Development degree): a task kernel, an entity/component subsystem and a messaging subsystem, split into an `Engine` static library and a `Game` executable. This version replaces the object-oriented entity model with a real ECS (entities as IDs, components stored contiguously per type, systems that iterate over views) and draws with my own renderer from [VS_3D-Renderer](https://github.com/miguelrg14/VS_3D-Renderer).
-
-> **Status:** phase 7 of 8. The demo is a small playable game: collect five orbs in an arena before the time runs out while patrolling drones try to catch you. Walls, crates, orbs and drones are box colliders handled by the engine's collision system. See the [roadmap](#roadmap).
+A small game engine written from scratch in **C++20 and OpenGL 3.3 (Core Profile)**, built around a data-oriented **Entity Component System**, with a playable demo, live debug tools and unit tests.
 
 <p align="center">
-  <img src="docs/images/07-orb-arena.png" alt="Phase 7: the orb arena seen from behind the player, with wooden walls, crate stairs in the far corner, patrolling drones, a glowing orb and the floating checker cube" width="800">
-  <br><em>Phase 7 · the orb arena: walls and crates block, orbs and drones are triggers</em>
+  <img src="docs/images/demo.gif" alt="Gameplay: a blocky character runs across a wooden arena, collects a glowing orb, gets caught by a patrolling drone and is sent back to the start; then the debug tools appear with stats, the scene hierarchy and the render settings" width="720">
 </p>
 
+It revisits the final assignment of the *Graphics Engines and Plugins* course (Game Design & Development degree): a task kernel, an entity/component subsystem and a messaging subsystem, split into an `Engine` static library and a `Game` executable. This version replaces the object-oriented entity model of the original assignment with a real ECS, and draws with my own renderer from [VS_3D-Renderer](https://github.com/miguelrg14/VS_3D-Renderer).
+
+**[Download the latest build](https://github.com/miguelrg14/ECS_Engine/releases/latest)** (Windows x64, unzip and run `ECS_Engine.exe`).
+
+---
+
+## Features
+
+| Area | What it does |
+|---|---|
+| **ECS core** | Entities are 32-bit IDs with a generation counter. One sparse-set pool per component type: O(1) add, remove and lookup, components packed contiguously. `view<A, B>()` walks the rarest component first. |
+| **Task kernel** | Systems run in priority order every frame, with a clamped delta time and per-task timing. Tasks added or removed mid-frame are applied at the next frame. |
+| **Transforms** | Position, quaternion rotation and scale with parent/child hierarchy; world matrices resolved once per frame in any creation order. |
+| **Renderer** | OpenGL 3.3 Core: shaders with cached uniforms, interleaved meshes, mipmapped textures, materials shared between entities, Blinn-Phong lighting and distance fog. Independent of the ECS. |
+| **Scripts** | Gameplay logic as C++ classes attached to entities (`on_create`, `on_update`, `on_destroy`), several per entity, deferred destruction. |
+| **Events** | Typed publish/subscribe: any struct is an event, delivered once per frame; subscribing and unsubscribing from inside a handler is safe. |
+| **Collisions** | Axis-aligned box colliders (static, dynamic, trigger), sweep-and-prune broad phase, separation along the least-penetration axis, enter/exit events. |
+| **Debug tools** | Dear ImGui (F1): frame-time graph and time per system, scene hierarchy, live component inspector, render settings, collider boxes. |
+| **Tests and CI** | 51 unit tests run after every build; GitHub Actions builds Debug and Release with Visual Studio 2026 on every push. |
+
 <p align="center">
-  <img src="docs/images/05-ecs-scene.png" alt="Phase 5: the test scene as entities, with a field of 1,000 spinning coloured cubes behind an umbrella, a potted plant and a UV-checker cube with an orbiting child" width="800">
-  <br><em>Phase 5 · the 1,000-cube stress test (key C)</em>
+  <img src="docs/images/08-debug-tools.png" alt="Debug tools over the game: stats with the time spent in each system, the render settings with collider boxes shown (red static, green dynamic, yellow triggers), the scene hierarchy and the inspector showing the player's transform, box collider and scripts" width="800">
+  <br><em>Debug tools: time per system, live inspector, collider boxes</em>
 </p>
 
 ---
 
-## Roadmap
+## The demo
 
-| Phase | Goal | Status |
-|---|---|---|
-| 1 · Solution skeleton | `Engine` static library + `Game` executable, SDL2 window, OpenGL 3.3 context through GLAD | ✅ Done |
-| 2 · Kernel, timer, input | Priority-ordered systems with `initialize` / `execute(dt)` / `finalize`, frame timer, keyboard and mouse state | ✅ Done |
-| 3 · Renderer module | Shaders, meshes, textures and materials ported from VS_3D-Renderer, resource cache, .obj models | ✅ Done |
-| 4 · ECS core | Sparse-set component pools, `Registry`, `view<A, B>()`, unit tests | ✅ Done |
-| 5 · Core components and systems | Transform hierarchy, camera, lights, render system | ✅ Done |
-| 6 · Scripts and events | Native scripts, typed event bus, player controller | ✅ Done |
-| 7 · Collisions and demo | AABB colliders and triggers, small playable demo | ✅ Done |
-| 8 · Debug tools and release | Dear ImGui entity inspector, docs, packaged build | ⏳ |
+Collect the 5 orbs in the arena within 90 seconds. Patrolling drones send you back to the start; one orb waits on top of the crate stairs.
+
+| Input | Action |
+|---|---|
+| `W` `A` `S` `D` | Move (relative to the camera) |
+| `Shift` (hold) | Run |
+| `Space` | Jump |
+| Right mouse (hold) + move | Orbit the camera |
+| Mouse wheel | Zoom |
+| `R` | New round |
+| `F1` | Show / hide the debug tools |
+| `Tab` | Free fly camera (`W` `A` `S` `D` + `Q` / `E`, right mouse to look) |
+| `C` | Add / remove 1,000 spinning cubes (stress test) |
+| `L` / `F` / `X` / `V` | Pause light / fog / wireframe / vsync |
+| `Esc` | Quit |
 
 ---
 
-## The ECS at a glance
+## How a frame runs
 
-```cpp
-engine::Registry registry;
-
-engine::Entity player = registry.create ();
-registry.add< Position >(player, 0.f, 1.f, 0.f);
-registry.add< Velocity >(player, 2.f, 0.f, 0.f);
-
-// Every entity with both components; the rarest one decides the cost.
-registry.view< Position, Velocity >().each ([dt] (Position & position, Velocity & velocity)
-{
-    position.x += velocity.x * dt;
-});
+```mermaid
+flowchart LR
+    A["Input_System<br/>10"] --> B["Script_System<br/>20"]
+    B --> C["Movement_System<br/>30"]
+    C --> D["Transform_System<br/>50"]
+    D --> E["Collision_System<br/>55"]
+    E --> F["Event_System<br/>60"]
+    F --> G["Render_System<br/>90"]
+    G --> H["Debug_UI_System<br/>100"]
+    H --> I["Present_System<br/>1000"]
 ```
 
-A scene object is an entity with the engine's components; the systems do the rest:
+Every box is a `Task` registered in the `Kernel` with its priority. Scripts move things, transforms are resolved, collisions push solids apart and queue trigger events, events are delivered, and only then is the frame drawn, so what you see is always consistent with that frame's logic.
+
+---
+
+## The code at a glance
+
+A scene object is an entity with components; the engine's systems do the rest:
 
 ```cpp
 engine::Entity cube = registry.create ();
 registry.add< engine::Transform     >(cube).position = { 0.f, 1.2f, 0.f };
 registry.add< engine::Mesh_Renderer >(cube, cube_mesh, checker_material);
 registry.add< engine::Velocity      >(cube, glm::vec3(0.f), glm::vec3(0.f, 0.8f, 0.f));   // spins
+registry.add< engine::Box_Collider  >(cube);                                                // solid
 
 engine::Entity moon = registry.create ();
 registry.add< engine::Transform     >(moon).parent = cube;                                  // orbits with it
 ```
 
-Behaviour goes in scripts, and scripts communicate through events without knowing each other:
+Systems are loops over the components they need:
+
+```cpp
+registry.view< Transform, Velocity >().each ([dt] (Transform & transform, Velocity & velocity)
+{
+    transform.position += velocity.linear * dt;
+});
+```
+
+Behaviour goes in scripts, which talk through events without knowing each other:
 
 ```cpp
 struct Landed { engine::Entity entity; float impact_speed; };          // any struct is an event
@@ -87,65 +123,23 @@ registry.add< engine::Script_Component >(player).bind< Player_Controller >(camer
 registry.get< engine::Script_Component >(player).bind< Squash_And_Stretch >();
 ```
 
-Collisions are components too. A wall is a static box; a pickup is a trigger whose overlap arrives as an event:
+---
 
-```cpp
-registry.add< engine::Box_Collider >(wall);                                         // static, solid
-registry.add< engine::Box_Collider >(orb, glm::vec3(1.2f), glm::vec3(0.f), true);   // trigger
+## Design decisions
 
-subscribe< engine::Trigger_Enter >([this] (const engine::Trigger_Enter & event)
-{
-    if (event.other == player && registry ().has< Orb >(event.trigger)) collect (event.trigger);
-});
-```
+- **Sparse sets instead of objects with component maps.** The original assignment stored components in `std::map<std::string, std::shared_ptr<Component>>` per entity. Here components of one type are packed in one array, found by C++ type at compile time instead of by string, and systems walk only the entities that have what they need.
+- **The renderer knows nothing about entities.** `Render_System` is the only place where the ECS meets OpenGL; the renderer can be tested or reused without the ECS.
+- **Typed, queued events.** A typo in an event name is a compile error, and handlers run at a fixed point of the frame instead of in the middle of the sender's update.
+- **Own collision system instead of a physics library.** The demo needs blocking, standing on platforms and trigger zones, not rigid-body simulation, so about 250 lines of tested code are enough. A Bullet-based `Physics_System` is the next planned step and fits behind the same components and events.
+- **Tests on every build.** A failing test fails the build locally and on GitHub.
 
-Entities are 32-bit IDs with a generation counter, so a handle to a destroyed entity is detected instead of reaching the entity that reused its slot. Each component type is stored in its own sparse set: add, remove and lookup are O(1), and components sit contiguously in memory. Details in [docs/architecture.md](docs/architecture.md#ecs-core-phase-4).
+Full write-up of each part in **[docs/architecture.md](docs/architecture.md)**.
 
 ---
 
-## Project layout
+## Building
 
-```text
-ECS_Engine/
-├── ECS_Engine.sln
-├── props/Common.props        # settings shared by every project (C++20, /W4, paths)
-├── Engine/                   # static library
-│   ├── project/Engine.vcxproj
-│   └── code/
-│       ├── headers/          # core/, ecs/, renderer/, resources/, systems/
-│       └── sources/
-├── Game/                     # executable built on top of the engine
-│   ├── project/Game.vcxproj
-│   ├── code/
-│   └── assets/
-├── Tests/                    # unit tests of the engine, run on every build
-│   ├── project/Tests.vcxproj
-│   └── code/
-├── libraries/                # third-party headers and prebuilt libraries
-└── docs/
-```
-
-More detail in [docs/architecture.md](docs/architecture.md).
-
----
-
-## Tech stack
-
-| Library | Use |
-|---|---|
-| [SDL2](https://www.libsdl.org/) 2.30.9 | Window, OpenGL context, input |
-| [GLAD](https://glad.dav1d.de/) 0.1.36 | OpenGL 3.3 Core function loader (compiled from source into `Engine`) |
-| [GLM](https://github.com/g-truc/glm) 1.0.1 | Vectors, matrices, transforms |
-| [stb_image](https://github.com/nothings/stb) 2.34 | PNG / JPG / TGA / BMP decoding (header-only) |
-| [tinyobjloader](https://github.com/tinyobjloader/tinyobjloader) 2.0.0rc13 | Wavefront .obj loading (header-only) |
-
-All dependencies are **included in [`libraries/`](libraries/)**, so there is nothing to install. The SDL2 binaries are small enough to live in the repository directly, so Git LFS is not needed.
-
----
-
-## Quick start
-
-**Requirements:** Windows 10/11 x64, Visual Studio 2026 with the *Desktop development with C++* workload (platform toolset v145), and a GPU that supports OpenGL 3.3.
+**Requirements:** Windows 10/11 x64, Visual Studio 2026 with *Desktop development with C++* (toolset v145), a GPU with OpenGL 3.3.
 
 ```text
 1. git clone https://github.com/miguelrg14/ECS_Engine.git
@@ -154,39 +148,56 @@ All dependencies are **included in [`libraries/`](libraries/)**, so there is not
 4. Press F5
 ```
 
-`Game` is the startup project and depends on `Engine`, so both build in order. Building the solution also builds `Tests` and runs it: a failing test fails the build. The executable is written to `binaries/<Configuration>/ECS_Engine.exe` together with `SDL2.dll` and `assets/`.
+`Game` is the startup project and builds `Engine` first. Building the solution also builds and runs `Tests`. Everything the engine needs is in [`libraries/`](libraries/); there is nothing to install. Details and troubleshooting in **[docs/building.md](docs/building.md)**.
 
-See **[docs/building.md](docs/building.md)** for details and troubleshooting.
+### Project layout
 
-### Controls
+```text
+ECS_Engine/
+├── ECS_Engine.sln
+├── props/Common.props        # settings shared by every project (C++20, /W4, paths)
+├── Engine/                   # static library: core/, ecs/, components/, systems/, scripting/, events/, renderer/, resources/
+├── Game/                     # the demo: scene, gameplay scripts, assets and shaders
+├── Tests/                    # unit tests, run after every build
+├── libraries/                # third-party code, each with its license
+├── docs/                     # architecture, building, images
+└── .github/workflows/        # Windows build, tests and releases
+```
 
-The current build is the phase 7 demo. **Goal:** collect the 5 orbs within 90 seconds. Touching a drone sends you back to the start. One orb waits on top of the crate stairs.
+### Tech stack
 
-| Input | Action |
+| Library | Use |
 |---|---|
-| `W` `A` `S` `D` | Move the character (relative to the camera) |
-| `Shift` (hold) | Run |
-| `Space` | Jump |
-| Right mouse (hold) + move | Orbit the camera around the character |
-| Mouse wheel | Zoom |
-| `R` | Start a new round |
-| `Tab` | Switch to the free fly camera and back (fly: `W` `A` `S` `D` + `Q` / `E`, right mouse to look) |
-| `C` | Add / remove a field of 1,000 spinning cubes |
-| `L` | Pause / resume the light |
-| `F` | Toggle fog |
-| `X` | Toggle wireframe |
-| `V` | Toggle vsync |
-| `Esc` | Quit |
+| [SDL2](https://www.libsdl.org/) 2.30.9 | Window, OpenGL context, input |
+| [GLAD](https://glad.dav1d.de/) 0.1.36 | OpenGL 3.3 Core loader (compiled from source) |
+| [GLM](https://github.com/g-truc/glm) 1.0.1 | Vectors, matrices, quaternions |
+| [stb_image](https://github.com/nothings/stb) 2.34 | Image decoding (header-only) |
+| [tinyobjloader](https://github.com/tinyobjloader/tinyobjloader) 2.0.0rc13 | .obj loading (header-only) |
+| [Dear ImGui](https://github.com/ocornut/imgui) 1.93.0 | Debug tools and HUD |
 
-The window title shows the orbs collected, the time left (or the result), FPS, entities and colliders.
+---
+
+## Roadmap
+
+| Phase | Goal | Status |
+|---|---|---|
+| 1 · Solution skeleton | `Engine` library + `Game` executable, SDL2 window, OpenGL 3.3 context | ✅ |
+| 2 · Kernel, timer, input | Priority-ordered tasks, frame timer, keyboard and mouse state | ✅ |
+| 3 · Renderer module | Shaders, meshes, textures, materials, resource cache, .obj models | ✅ |
+| 4 · ECS core | Sparse-set pools, registry, views, unit tests | ✅ |
+| 5 · Components and systems | Transform hierarchy, camera, light, movement and render systems | ✅ |
+| 6 · Scripts and events | Native scripts, typed event bus, player controller | ✅ |
+| 7 · Collisions and demo | Box colliders and triggers, the orb arena | ✅ |
+| 8 · Debug tools and release | Dear ImGui tools, CI, packaged build, documentation | ✅ |
+| Next · Physics | Optional Bullet `Physics_System` with rigid bodies, behind the same components and events | Planned |
 
 ---
 
 ## Credits
 
-- Umbrella and plant models and their textures, wood and UV-checker textures: from my [VS_3D-Renderer](https://github.com/miguelrg14/VS_3D-Renderer) assignment.
-- The lit shader is a port of the Blinn-Phong and fog shader from the same project.
+- Umbrella and plant models, their textures, and the wood and UV-checker textures: from my [VS_3D-Renderer](https://github.com/miguelrg14/VS_3D-Renderer) assignment, as is the Blinn-Phong and fog shader this engine's lit shader is ported from.
+- Third-party libraries listed above, each under its own license in `libraries/`.
 
 ## License
 
-My code is released under the [MIT License](LICENSE). Third-party libraries in `libraries/` keep their own licenses, included next to each one.
+My code is released under the [MIT License](LICENSE).
