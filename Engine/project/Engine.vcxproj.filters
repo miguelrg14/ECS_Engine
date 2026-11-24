@@ -10,6 +10,9 @@
     <Filter Include="code\headers\core">
       <UniqueIdentifier>{E809C90E-7691-545E-A64A-4B96305ED1E2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\headers\ecs">
+      <UniqueIdentifier>{80312AB0-3178-55D7-BEC8-3E1895B94DEA}</UniqueIdentifier>
+    </Filter>
     <Filter Include="code\headers\renderer">
       <UniqueIdentifier>{CDC59986-E878-568B-8AE7-43489A37E237}</UniqueIdentifier>
     </Filter>
@@ -24,6 +27,9 @@
     </Filter>
     <Filter Include="code\sources\core">
       <UniqueIdentifier>{E4BCD27D-5EF7-5A57-9D8A-FF0BDD00163F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\sources\ecs">
+      <UniqueIdentifier>{4EFB03BB-8315-5D04-BE39-105FA1466694}</UniqueIdentifier>
     </Filter>
     <Filter Include="code\sources\renderer">
       <UniqueIdentifier>{34CFE7EB-7E1F-56CC-9E11-03BFA8A53C36}</UniqueIdentifier>
@@ -65,6 +71,18 @@
     </ClInclude>
     <ClInclude Include="..\code\headers\core\Window.hpp">
       <Filter>code\headers\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\headers\ecs\Component_Pool.hpp">
+      <Filter>code\headers\ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\headers\ecs\Entity.hpp">
+      <Filter>code\headers\ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\headers\ecs\Registry.hpp">
+      <Filter>code\headers\ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\headers\ecs\View.hpp">
+      <Filter>code\headers\ecs</Filter>
     </ClInclude>
     <ClInclude Include="..\code\headers\renderer\Camera.hpp">
       <Filter>code\headers\renderer</Filter>
@@ -109,6 +127,9 @@
     </ClCompile>
     <ClCompile Include="..\code\sources\core\Window.cpp">
       <Filter>code\sources\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\sources\ecs\Registry.cpp">
+      <Filter>code\sources\ecs</Filter>
     </ClCompile>
     <ClCompile Include="..\code\sources\renderer\Camera.cpp">
       <Filter>code\sources\renderer</Filter>

@@ -81,6 +81,48 @@ renderer.submit (mesh, material, model_matrix);         // one call per object
 
 Shaders live in `Game/assets/shaders/` as `.vert` / `.frag` files. Lighting is computed in eye space: the light position is transformed by the view matrix once per frame.
 
+## ECS core (phase 4)
+
+### Entity
+
+`Entity` is a `std::uint32_t`: the low 24 bits are an index (a slot in the registry) and the high 8 bits a version. Destroying an entity frees its slot and increments the version stored there, so the next entity created in that slot has a different handle. `Registry::valid` compares the whole handle, which is how a stale handle is rejected instead of silently reaching the new entity. The version wraps after 256 reuses of one slot.
+
+### Component_Pool<T>: a sparse set
+
+```text
+sparse  [entity index] -> position in dense/data  (or absent)
+dense   [position]     -> entity
+data    [position]     -> component T
+```
+
+- `add`: append to `dense` and `data`, write the position in `sparse`. O(1).
+- `get` / `has`: one lookup in `sparse`; `has` also checks that `dense` holds the same handle, version included. O(1).
+- `remove`: move the last component into the gap (swap and pop) and fix that entity's `sparse` entry. O(1); order is not kept.
+- Components of one type are contiguous, so iterating them walks memory in order.
+
+### Registry
+
+Owns the entity slots, the free list and one pool per component type. A type gets a small consecutive id the first time it is used (`detail::component_id<T>()`), which indexes the array of pools, so looking up a pool is an array access. Pools are created on first `add`.
+
+| Call | Effect |
+|---|---|
+| `create()` / `destroy(e)` / `valid(e)` | Entity lifetime. `destroy` removes every component of the entity. |
+| `add<T>(e, args...)` | Builds T in place; plain structs are built with braces, so `add<Position>(e, 1.f, 2.f, 3.f)` works. |
+| `get<T>(e)`, `try_get<T>(e)`, `has<T>(e)`, `all_of<Ts...>(e)`, `remove<T>(e)` | Component access. |
+| `view<Ts...>()` | Every entity with all of `Ts`. |
+
+### View
+
+`view<A, B, C>().each(callback)` takes the pool with the fewest components among A, B and C, walks its entities and checks the others, so the cost depends on the rarest component. The callback receives `(Entity, A&, B&, C&)` or just `(A&, B&, C&)`. It iterates from the last element to the first, so the callback can remove components from, or destroy, the entity it is visiting.
+
+### Tests
+
+`Tests/` holds a minimal test runner (`TEST` / `CHECK`) and 17 tests: unique and valid handles, version reuse, `clear`, add/get/remove, swap-and-pop integrity, destroy removing every component, view membership, smallest-pool selection, destroying during iteration, and 10,000 entities with half destroyed.
+
+### Differences from the original assignment
+
+The course's entity was an object holding `std::map<std::string, std::shared_ptr<Component>>`. Here an entity holds nothing: components of one type are packed together, they are found by type at compile time instead of by string, and systems iterate over the components they need instead of over every entity.
+
 ## Modules so far
 
 | Module | Files | Responsibility |
@@ -88,6 +130,10 @@ Shaders live in `Game/assets/shaders/` as `.vert` / `.frag` files. Lighting is c
 | `core/Window` | `Window.hpp/.cpp` | Creates the SDL2 window and the OpenGL 3.3 Core context, loads the GL functions with GLAD, handles vsync, resize and buffer swaps. RAII: the destructor releases both handles. |
 | `core/Log` | `Log.hpp` | `log_info`, `log_warning`, `log_error` over `SDL_Log` (console and Visual Studio Output window). |
 | `renderer/Render_Command` | `Render_Command.hpp/.cpp` | Stateless per-frame GL calls: clear colour, clear, viewport. |
+| `ecs/Entity` | `Entity.hpp` | Entity handle: index + version. |
+| `ecs/Component_Pool` | `Component_Pool.hpp` | Sparse set for one component type. |
+| `ecs/Registry` | `Registry.hpp/.cpp` | Entities, pools, component access, views. |
+| `ecs/View` | `View.hpp` | Iteration over entities with a set of components. |
 | `core/Task` | `Task.hpp` | Base class of every per-frame task: name, priority, `initialize` / `execute(dt)` / `finalize`. Priority constants. |
 | `core/Kernel` | `Kernel.hpp/.cpp` | Main loop, priority-sorted task list, deferred add/remove, delta time, FPS. |
 | `core/Timer` | `Timer.hpp` | Elapsed seconds over `std::chrono::steady_clock`. |

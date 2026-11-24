@@ -13,13 +13,17 @@
 3. Pick the `x64` platform and `Debug` or `Release`.
 4. Press **F5**. `Game` is the startup project; it references `Engine`, so the library builds first.
 
+## Tests
+
+`Tests` is a console project in the same solution. It links `Engine` and its post-build step runs the test executable, so building the solution runs the tests, and a failing test makes the build fail with the test's name, file and line in the Output window. To run them by hand: `binaries/<Configuration>/ECS_Engine_Tests.exe`.
+
 ## Where things go
 
 | Path | Content |
 |---|---|
 | `build/lib/<Configuration>/Engine.lib` | The engine static library |
 | `build/<Project>/<Configuration>/` | Intermediate files (`.obj`, logs) |
-| `binaries/<Configuration>/` | `ECS_Engine.exe`, `SDL2.dll` and a copy of `Game/assets/` |
+| `binaries/<Configuration>/` | `ECS_Engine.exe`, `ECS_Engine_Tests.exe`, `SDL2.dll` and a copy of `Game/assets/` |
 
 Both `build/` and `binaries/` are ignored by Git.
 

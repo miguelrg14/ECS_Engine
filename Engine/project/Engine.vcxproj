@@ -64,6 +64,10 @@
     <ClInclude Include="..\code\headers\core\Task.hpp" />
     <ClInclude Include="..\code\headers\core\Timer.hpp" />
     <ClInclude Include="..\code\headers\core\Window.hpp" />
+    <ClInclude Include="..\code\headers\ecs\Component_Pool.hpp" />
+    <ClInclude Include="..\code\headers\ecs\Entity.hpp" />
+    <ClInclude Include="..\code\headers\ecs\Registry.hpp" />
+    <ClInclude Include="..\code\headers\ecs\View.hpp" />
     <ClInclude Include="..\code\headers\renderer\Camera.hpp" />
     <ClInclude Include="..\code\headers\renderer\Material.hpp" />
     <ClInclude Include="..\code\headers\renderer\Mesh.hpp" />
@@ -80,6 +84,7 @@
     <ClCompile Include="..\code\sources\core\Application.cpp" />
     <ClCompile Include="..\code\sources\core\Kernel.cpp" />
     <ClCompile Include="..\code\sources\core\Window.cpp" />
+    <ClCompile Include="..\code\sources\ecs\Registry.cpp" />
     <ClCompile Include="..\code\sources\renderer\Camera.cpp" />
     <ClCompile Include="..\code\sources\renderer\Mesh.cpp" />
     <ClCompile Include="..\code\sources\renderer\Model_Loader.cpp" />
