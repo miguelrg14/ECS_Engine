@@ -59,7 +59,7 @@ More detail in [docs/architecture.md](docs/architecture.md).
 | [GLAD](https://glad.dav1d.de/) 0.1.36 | OpenGL 3.3 Core function loader (compiled from source into `Engine`) |
 | [GLM](https://github.com/g-truc/glm) 1.0.1 | Vectors, matrices, transforms |
 | [stb_image](https://github.com/nothings/stb) 2.34 | PNG / JPG / TGA / BMP decoding (header-only) |
-| [tinyobjloader](https://github.com/tinyobjloader/tinyobjloader) | Wavefront .obj loading (header-only) |
+| [tinyobjloader](https://github.com/tinyobjloader/tinyobjloader) 2.0.0rc13 | Wavefront .obj loading (header-only) |
 
 All dependencies are **included in [`libraries/`](libraries/)**, so there is nothing to install. The SDL2 binaries are small enough to live in the repository directly, so Git LFS is not needed.
 
