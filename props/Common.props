@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Settings shared by every project in the solution.
+    Imported from each .vcxproj, so a change here applies to Engine and Game at once.
+-->
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup Label="UserMacros">
+    <!-- Repository root, valid even when a project is built without the solution. -->
+    <EngineRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\'))</EngineRoot>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IntDir>$(EngineRoot)build\$(ProjectName)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ConformanceMode>true</ConformanceMode>
+      <WarningLevel>Level4</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <!-- Headers included with <...> (SDL, GLM, GLAD) do not add warnings of their own. -->
+      <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <AdditionalIncludeDirectories>$(EngineRoot)Engine\code\headers;$(EngineRoot)libraries\sdl\include;$(EngineRoot)libraries\glad\include;$(EngineRoot)libraries\glm\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>GLM_FORCE_SILENT_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+
+</Project>
