@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Miguel Rodriguez Gallego
 // This code is released under the MIT License.
 
-#include "Sandbox.hpp"
+#include "Model_Viewer.hpp"
 
 #include <Engine.hpp>
 #include <exception>
@@ -12,9 +12,9 @@ int main (int , char * [])
     {
         engine::Application application ({ .title = "ECS Engine", .width = 1280, .height = 720 });
 
-        Sandbox sandbox (application);
+        Model_Viewer viewer (application);
 
-        application.get_kernel ().add (sandbox);
+        application.get_kernel ().add (viewer);
         application.run ();
     }
     catch (const std::exception & exception)

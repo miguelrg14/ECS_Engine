@@ -1,21 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="assets">
+      <UniqueIdentifier>{C52FA325-82E7-5964-9781-EAD20C27712D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets\shaders">
+      <UniqueIdentifier>{7AF9711C-EA37-5DC8-9FD8-28C17B112656}</UniqueIdentifier>
+    </Filter>
     <Filter Include="code">
       <UniqueIdentifier>{584DBE41-97A6-5466-9B08-5C3FC08A2997}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\code\Sandbox.hpp">
+    <ClInclude Include="..\code\Fly_Camera.hpp">
+      <Filter>code</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\Model_Viewer.hpp">
       <Filter>code</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\code\Sandbox.cpp">
+    <ClCompile Include="..\code\Fly_Camera.cpp">
+      <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\Model_Viewer.cpp">
       <Filter>code</Filter>
     </ClCompile>
     <ClCompile Include="..\code\main.cpp">
       <Filter>code</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\assets\shaders\lit.frag">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\lit.vert">
+      <Filter>assets\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

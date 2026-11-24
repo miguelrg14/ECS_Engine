@@ -124,4 +124,14 @@ namespace engine
         }
     }
 
+    void Window::set_mouse_captured (bool captured)
+    {
+        SDL_SetRelativeMouseMode (captured ? SDL_TRUE : SDL_FALSE);
+    }
+
+    bool Window::is_mouse_captured () const
+    {
+        return SDL_GetRelativeMouseMode () == SDL_TRUE;
+    }
+
 }

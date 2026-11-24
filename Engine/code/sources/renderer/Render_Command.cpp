@@ -23,4 +23,21 @@ namespace engine::Render_Command
         glViewport (x, y, width, height);
     }
 
+    void set_depth_test (bool enabled)
+    {
+        if (enabled) { glEnable (GL_DEPTH_TEST); glDepthFunc (GL_LESS); }
+        else           glDisable (GL_DEPTH_TEST);
+    }
+
+    void set_face_culling (bool enabled)
+    {
+        if (enabled) { glEnable (GL_CULL_FACE); glCullFace (GL_BACK); }
+        else           glDisable (GL_CULL_FACE);
+    }
+
+    void set_wireframe (bool enabled)
+    {
+        glPolygonMode (GL_FRONT_AND_BACK, enabled ? GL_LINE : GL_FILL);
+    }
+
 }

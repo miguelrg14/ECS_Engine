@@ -21,7 +21,9 @@
 | `build/<Project>/<Configuration>/` | Intermediate files (`.obj`, logs) |
 | `binaries/<Configuration>/` | `ECS_Engine.exe`, `SDL2.dll` and a copy of `Game/assets/` |
 
-Both `build/` and `binaries/` are ignored by Git. Visual Studio runs the game from `binaries/<Configuration>/`, the same folder the packaged executable runs from, so asset paths are always relative to the executable.
+Both `build/` and `binaries/` are ignored by Git.
+
+Asset paths are relative to the working directory (`assets/...`). When you press F5, Visual Studio runs the game with `Game/` as working directory, so it reads `Game/assets/` directly: an edited shader or texture shows up on the next run without rebuilding. The post-build step also copies `assets/` next to the executable, so `binaries/<Configuration>/ECS_Engine.exe` runs on its own too.
 
 ## Configurations
 

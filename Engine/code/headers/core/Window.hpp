@@ -58,6 +58,10 @@ namespace engine
         void set_title (const std::string & title);
         void set_vsync (bool enabled);
 
+        /// Hides the cursor and reports only relative motion (for mouse-look).
+        void set_mouse_captured (bool captured);
+        bool is_mouse_captured  () const;
+
         unsigned      get_width   () const { return width;  }
         unsigned      get_height  () const { return height; }
         bool          is_vsync    () const { return vsync;  }

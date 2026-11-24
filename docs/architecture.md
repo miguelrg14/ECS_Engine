@@ -17,7 +17,7 @@ Engine (static library)
    └── Renderer          OpenGL 3.3: shaders, meshes, textures, materials     (phases 1, 3)
                          It does not know about the ECS; Render_System translates.
    ▼
-libraries/               SDL2 · GLAD · GLM (Assimp, SOIL2, Dear ImGui later)
+libraries/               SDL2 · GLAD · GLM · stb_image · tinyobjloader (Dear ImGui later)
 ```
 
 ## Design rules
@@ -34,9 +34,9 @@ libraries/               SDL2 · GLAD · GLM (Assimp, SOIL2, Dear ImGui later)
 ```cpp
 engine::Application application ({ .title = "ECS Engine" });
 
-Sandbox sandbox (application);              // a Task defined in Game/
+Model_Viewer viewer (application);          // a Task defined in Game/
 
-application.get_kernel ().add (sandbox);
+application.get_kernel ().add (viewer);
 application.run ();                         // returns when the kernel stops
 ```
 
@@ -51,13 +51,35 @@ When `stop()` is called the loop ends and every task is finalized in reverse ord
 | Priority | Task | Phase |
 |---|---|---|
 | 10 | `Input_System` — SDL events → `Input`, resize, window close | 2 |
-| 20 | Scripts (the phase 2 `Sandbox` runs here) | 2, 6 |
+| 20 | Scripts (the test scene `Model_Viewer` runs here for now) | 2, 6 |
 | 30–60 | Movement, collision, transform, events | 5–7 |
 | 90 | `Render_System` | 5 |
 | 100 | Debug UI | 8 |
 | 1000 | `Present_System` — swaps the window buffers | 2 |
 
 `Input` stores the current and previous state of every key (by scancode, so WASD keeps its place on any layout) and mouse button. That gives three queries per key: held (`is_key_down`), went down this frame (`was_key_pressed`) and went up this frame (`was_key_released`). Losing focus clears the state, because keys released outside the window never send a key-up event.
+
+## Renderer (phase 3)
+
+The renderer draws meshes with materials and knows nothing about entities. A frame is:
+
+```cpp
+renderer.begin_frame (camera, light, fog);              // view, projection, light and fog for this frame
+renderer.submit (mesh, material, model_matrix);         // one call per object
+```
+
+| Class | Responsibility |
+|---|---|
+| `Shader` | Compiles and links a vertex + fragment program; throws with the driver's log on error. Caches uniform locations by name. |
+| `Texture` | RGBA8 2D texture with mipmaps, loaded with stb_image (flipped so the first row is the bottom one, as OpenGL expects). |
+| `Mesh` | One VAO with an interleaved vertex buffer (position, normal, uv at locations 0, 1, 2) and an index buffer. Computes its bounds. Factories for a cube and a plane. |
+| `load_obj` | Reads an .obj with tinyobjloader, merges all its objects, shares identical vertices and generates smooth normals when the file has none. |
+| `Material` | Shader, albedo texture, colour, UV tiling and Blinn-Phong parameters. Shared by any number of meshes. |
+| `Camera` | Position, yaw and pitch, perspective parameters → view and projection matrices. No input: a controller moves it. |
+| `Renderer` | Sends per-frame uniforms once per shader per frame and per-object uniforms (model-view and normal matrices, material) on each submit. Counts draw calls and triangles. |
+| `Resource_Manager` | Loads shaders, textures and meshes on first request and returns the same `shared_ptr` afterwards. Owned by `Application`, declared after the window so GPU objects are deleted before the OpenGL context. |
+
+Shaders live in `Game/assets/shaders/` as `.vert` / `.frag` files. Lighting is computed in eye space: the light position is transformed by the view matrix once per frame.
 
 ## Modules so far
 
@@ -70,7 +92,9 @@ When `stop()` is called the loop ends and every task is finalized in reverse ord
 | `core/Kernel` | `Kernel.hpp/.cpp` | Main loop, priority-sorted task list, deferred add/remove, delta time, FPS. |
 | `core/Timer` | `Timer.hpp` | Elapsed seconds over `std::chrono::steady_clock`. |
 | `core/Input` | `Input.hpp` | Keyboard and mouse state for the current frame. |
-| `core/Application` | `Application.hpp/.cpp` | Owns SDL, window, input and kernel; registers the engine tasks. |
+| `core/Application` | `Application.hpp/.cpp` | Owns SDL, window, resources, renderer, input and kernel; registers the engine tasks. |
 | `systems/Input_System` | `Input_System.hpp/.cpp` | Fills `Input` from the SDL event queue. |
 | `systems/Present_System` | `Present_System.hpp` | Swaps the window buffers at the end of the frame. |
-| `Game` | `main.cpp`, `Sandbox.hpp/.cpp` | Creates the application and a test task that uses timing and input. |
+| `renderer/*` | `Shader`, `Texture`, `Mesh`, `Model_Loader`, `Material`, `Camera`, `Renderer`, `Render_Command` | See the renderer section above. |
+| `resources/Resource_Manager` | `Resource_Manager.hpp/.cpp` | Asset cache by path. |
+| `Game` | `main.cpp`, `Model_Viewer`, `Fly_Camera` | Creates the application and a test scene that uses the renderer directly; becomes entities in phase 5. |

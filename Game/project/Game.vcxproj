@@ -42,8 +42,9 @@
   <PropertyGroup>
     <OutDir>$(EngineRoot)binaries\$(Configuration)\</OutDir>
     <TargetName>ECS_Engine</TargetName>
-    <!-- F5 runs from the output folder, the same place the packaged .exe runs from. -->
-    <LocalDebuggerWorkingDirectory>$(OutDir)</LocalDebuggerWorkingDirectory>
+    <!-- F5 reads assets straight from Game/assets, so editing a shader needs no rebuild.
+         The post-build step still copies them next to the .exe for running it on its own. -->
+    <LocalDebuggerWorkingDirectory>$(ProjectDir)..\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -85,11 +86,17 @@ exit 0</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\code\Sandbox.hpp" />
+    <ClInclude Include="..\code\Fly_Camera.hpp" />
+    <ClInclude Include="..\code\Model_Viewer.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\code\Sandbox.cpp" />
+    <ClCompile Include="..\code\Fly_Camera.cpp" />
+    <ClCompile Include="..\code\Model_Viewer.cpp" />
     <ClCompile Include="..\code\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\assets\shaders\lit.frag" />
+    <None Include="..\assets\shaders\lit.vert" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Engine\project\Engine.vcxproj">
