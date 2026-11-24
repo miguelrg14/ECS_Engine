@@ -4,11 +4,11 @@ A small game engine written from scratch in **C++20 and modern OpenGL 3.3 (Core 
 
 It revisits the final assignment of the *Graphics Engines and Plugins* course (Game Design & Development degree): a task kernel, an entity/component subsystem and a messaging subsystem, split into an `Engine` static library and a `Game` executable. This version replaces the object-oriented entity model with a real ECS (entities as IDs, components stored contiguously per type, systems that iterate over views) and draws with my own renderer from [VS_3D-Renderer](https://github.com/miguelrg14/VS_3D-Renderer).
 
-> **Status:** phase 4 of 8. The ECS core (entities, sparse-set component pools, registry and views) is in place and covered by unit tests. Phase 5 moves the test scene onto entities. See the [roadmap](#roadmap).
+> **Status:** phase 5 of 8. The test scene is made of entities: transforms with parent/child hierarchy, mesh renderers, camera and light components, drawn by the engine's systems. See the [roadmap](#roadmap).
 
 <p align="center">
-  <img src="docs/images/03-renderer.png" alt="Phase 3: wooden floor, an umbrella and a potted plant loaded from .obj files, a UV-checker cube with an orbiting child cube, a point light and distance fog" width="800">
-  <br><em>Phase 3 · renderer test scene</em>
+  <img src="docs/images/05-ecs-scene.png" alt="Phase 5: the test scene as entities, with a field of 1,000 spinning coloured cubes behind an umbrella, a potted plant and a UV-checker cube with an orbiting child" width="800">
+  <br><em>Phase 5 · the test scene as entities, with the 1,000-cube field turned on</em>
 </p>
 
 ---
@@ -21,7 +21,7 @@ It revisits the final assignment of the *Graphics Engines and Plugins* course (G
 | 2 · Kernel, timer, input | Priority-ordered systems with `initialize` / `execute(dt)` / `finalize`, frame timer, keyboard and mouse state | ✅ Done |
 | 3 · Renderer module | Shaders, meshes, textures and materials ported from VS_3D-Renderer, resource cache, .obj models | ✅ Done |
 | 4 · ECS core | Sparse-set component pools, `Registry`, `view<A, B>()`, unit tests | ✅ Done |
-| 5 · Core components and systems | Transform hierarchy, camera, lights, render system | ⏳ |
+| 5 · Core components and systems | Transform hierarchy, camera, lights, render system | ✅ Done |
 | 6 · Scripts and events | Native scripts, typed event bus, player controller | ⏳ |
 | 7 · Collisions and demo | AABB colliders and triggers, small playable demo | ⏳ |
 | 8 · Debug tools and release | Dear ImGui entity inspector, docs, packaged build | ⏳ |
@@ -42,6 +42,18 @@ registry.view< Position, Velocity >().each ([dt] (Position & position, Velocity 
 {
     position.x += velocity.x * dt;
 });
+```
+
+A scene object is an entity with the engine's components; the systems do the rest:
+
+```cpp
+engine::Entity cube = registry.create ();
+registry.add< engine::Transform     >(cube).position = { 0.f, 1.2f, 0.f };
+registry.add< engine::Mesh_Renderer >(cube, cube_mesh, checker_material);
+registry.add< engine::Velocity      >(cube, glm::vec3(0.f), glm::vec3(0.f, 0.8f, 0.f));   // spins
+
+engine::Entity moon = registry.create ();
+registry.add< engine::Transform     >(moon).parent = cube;                                  // orbits with it
 ```
 
 Entities are 32-bit IDs with a generation counter, so a handle to a destroyed entity is detected instead of reaching the entity that reused its slot. Each component type is stored in its own sparse set: add, remove and lookup are O(1), and components sit contiguously in memory. Details in [docs/architecture.md](docs/architecture.md#ecs-core-phase-4).
@@ -105,7 +117,7 @@ See **[docs/building.md](docs/building.md)** for details and troubleshooting.
 
 ### Controls
 
-The current build is the phase 3 renderer test scene:
+The current build is the phase 5 test scene:
 
 | Input | Action |
 |---|---|
@@ -113,13 +125,14 @@ The current build is the phase 3 renderer test scene:
 | `W` `A` `S` `D` | Move |
 | `Q` / `E` | Down / up |
 | `Shift` (hold) | Move faster |
+| `C` | Add / remove a field of 1,000 spinning cubes |
 | `L` | Pause / resume the light |
 | `F` | Toggle fog |
 | `X` | Toggle wireframe |
 | `V` | Toggle vsync |
 | `Esc` | Quit |
 
-The window title shows FPS, frame time, draw calls and triangles.
+The window title shows FPS, frame time, entities, draw calls and triangles.
 
 ---
 

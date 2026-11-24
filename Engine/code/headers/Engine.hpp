@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "components.hpp"
 #include "core/Application.hpp"
 #include "core/Input.hpp"
 #include "core/Kernel.hpp"
@@ -24,3 +25,6 @@
 #include "renderer/Shader.hpp"
 #include "renderer/Texture.hpp"
 #include "resources/Resource_Manager.hpp"
+#include "systems/Movement_System.hpp"
+#include "systems/Render_System.hpp"
+#include "systems/Transform_System.hpp"

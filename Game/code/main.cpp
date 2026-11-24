@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Miguel Rodriguez Gallego
 // This code is released under the MIT License.
 
-#include "Model_Viewer.hpp"
+#include "Demo_Scene.hpp"
 
 #include <Engine.hpp>
 #include <exception>
@@ -12,9 +12,9 @@ int main (int , char * [])
     {
         engine::Application application ({ .title = "ECS Engine", .width = 1280, .height = 720 });
 
-        Model_Viewer viewer (application);
+        Demo_Scene scene (application);
 
-        application.get_kernel ().add (viewer);
+        application.get_kernel ().add (scene);
         application.run ();
     }
     catch (const std::exception & exception)

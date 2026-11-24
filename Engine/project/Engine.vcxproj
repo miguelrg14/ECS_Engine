@@ -57,6 +57,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\code\headers\Engine.hpp" />
+    <ClInclude Include="..\code\headers\components.hpp" />
+    <ClInclude Include="..\code\headers\components\Camera_Component.hpp" />
+    <ClInclude Include="..\code\headers\components\Light_Component.hpp" />
+    <ClInclude Include="..\code\headers\components\Mesh_Renderer.hpp" />
+    <ClInclude Include="..\code\headers\components\Name.hpp" />
+    <ClInclude Include="..\code\headers\components\Transform.hpp" />
+    <ClInclude Include="..\code\headers\components\Velocity.hpp" />
     <ClInclude Include="..\code\headers\core\Application.hpp" />
     <ClInclude Include="..\code\headers\core\Input.hpp" />
     <ClInclude Include="..\code\headers\core\Kernel.hpp" />
@@ -78,9 +85,14 @@
     <ClInclude Include="..\code\headers\renderer\Texture.hpp" />
     <ClInclude Include="..\code\headers\resources\Resource_Manager.hpp" />
     <ClInclude Include="..\code\headers\systems\Input_System.hpp" />
+    <ClInclude Include="..\code\headers\systems\Movement_System.hpp" />
     <ClInclude Include="..\code\headers\systems\Present_System.hpp" />
+    <ClInclude Include="..\code\headers\systems\Render_System.hpp" />
+    <ClInclude Include="..\code\headers\systems\System.hpp" />
+    <ClInclude Include="..\code\headers\systems\Transform_System.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\code\sources\components\Transform.cpp" />
     <ClCompile Include="..\code\sources\core\Application.cpp" />
     <ClCompile Include="..\code\sources\core\Kernel.cpp" />
     <ClCompile Include="..\code\sources\core\Window.cpp" />
@@ -94,6 +106,9 @@
     <ClCompile Include="..\code\sources\renderer\Texture.cpp" />
     <ClCompile Include="..\code\sources\resources\Resource_Manager.cpp" />
     <ClCompile Include="..\code\sources\systems\Input_System.cpp" />
+    <ClCompile Include="..\code\sources\systems\Movement_System.cpp" />
+    <ClCompile Include="..\code\sources\systems\Render_System.cpp" />
+    <ClCompile Include="..\code\sources\systems\Transform_System.cpp" />
     <ClCompile Include="..\code\sources\third_party\third_party.cpp">
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <SDLCheck>false</SDLCheck>

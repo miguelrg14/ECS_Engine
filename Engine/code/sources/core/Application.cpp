@@ -24,12 +24,18 @@ namespace engine
 
     Application::Application (const Window::Settings & settings)
     :
-        window        (settings),
-        input_system  (input, window, kernel),
-        present_system(window)
+        window          (settings),
+        input_system    (input, window, kernel),
+        movement_system (registry),
+        transform_system(registry),
+        render_system   (registry, renderer, window),
+        present_system  (window)
     {
-        kernel.add (input_system  );
-        kernel.add (present_system);
+        kernel.add (input_system    );
+        kernel.add (movement_system );
+        kernel.add (transform_system);
+        kernel.add (render_system   );
+        kernel.add (present_system  );
     }
 
 }

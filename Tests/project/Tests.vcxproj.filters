@@ -14,6 +14,9 @@
     <ClCompile Include="..\code\Test_Registry.cpp">
       <Filter>code</Filter>
     </ClCompile>
+    <ClCompile Include="..\code\Test_Systems.cpp">
+      <Filter>code</Filter>
+    </ClCompile>
     <ClCompile Include="..\code\main.cpp">
       <Filter>code</Filter>
     </ClCompile>

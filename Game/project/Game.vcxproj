@@ -86,12 +86,12 @@ exit 0</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\code\Demo_Scene.hpp" />
     <ClInclude Include="..\code\Fly_Camera.hpp" />
-    <ClInclude Include="..\code\Model_Viewer.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\code\Demo_Scene.cpp" />
     <ClCompile Include="..\code\Fly_Camera.cpp" />
-    <ClCompile Include="..\code\Model_Viewer.cpp" />
     <ClCompile Include="..\code\main.cpp" />
   </ItemGroup>
   <ItemGroup>

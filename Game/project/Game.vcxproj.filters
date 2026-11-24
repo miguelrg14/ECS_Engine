@@ -12,18 +12,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\code\Fly_Camera.hpp">
+    <ClInclude Include="..\code\Demo_Scene.hpp">
       <Filter>code</Filter>
     </ClInclude>
-    <ClInclude Include="..\code\Model_Viewer.hpp">
+    <ClInclude Include="..\code\Fly_Camera.hpp">
       <Filter>code</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\code\Fly_Camera.cpp">
+    <ClCompile Include="..\code\Demo_Scene.cpp">
       <Filter>code</Filter>
     </ClCompile>
-    <ClCompile Include="..\code\Model_Viewer.cpp">
+    <ClCompile Include="..\code\Fly_Camera.cpp">
       <Filter>code</Filter>
     </ClCompile>
     <ClCompile Include="..\code\main.cpp">

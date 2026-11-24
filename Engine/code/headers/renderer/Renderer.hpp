@@ -53,6 +53,7 @@ namespace engine
         Renderer ();
 
         void begin_frame (const Camera & camera, const Point_Light & light, const Fog & fog);
+        void begin_frame (const glm::mat4 & view, const glm::mat4 & projection, const Point_Light & light, const Fog & fog);
 
         void submit (const Mesh & mesh, const Material & material, const glm::mat4 & model_matrix);
 

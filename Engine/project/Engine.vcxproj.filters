@@ -7,6 +7,9 @@
     <Filter Include="code\headers">
       <UniqueIdentifier>{6D898B42-624E-5FF7-BDF6-D1DC4226FAE7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\headers\components">
+      <UniqueIdentifier>{19A7D7C3-323D-55BE-8BE8-376D56E1245A}</UniqueIdentifier>
+    </Filter>
     <Filter Include="code\headers\core">
       <UniqueIdentifier>{E809C90E-7691-545E-A64A-4B96305ED1E2}</UniqueIdentifier>
     </Filter>
@@ -24,6 +27,9 @@
     </Filter>
     <Filter Include="code\sources">
       <UniqueIdentifier>{D6A6E1D8-336A-5E37-BFB0-777C6A069568}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\sources\components">
+      <UniqueIdentifier>{174074CA-D8C1-5999-A99E-B7BAB7779692}</UniqueIdentifier>
     </Filter>
     <Filter Include="code\sources\core">
       <UniqueIdentifier>{E4BCD27D-5EF7-5A57-9D8A-FF0BDD00163F}</UniqueIdentifier>
@@ -50,6 +56,27 @@
   <ItemGroup>
     <ClInclude Include="..\code\headers\Engine.hpp">
       <Filter>code\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\headers\components.hpp">
+      <Filter>code\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\headers\components\Camera_Component.hpp">
+      <Filter>code\headers\components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\headers\components\Light_Component.hpp">
+      <Filter>code\headers\components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\headers\components\Mesh_Renderer.hpp">
+      <Filter>code\headers\components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\headers\components\Name.hpp">
+      <Filter>code\headers\components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\headers\components\Transform.hpp">
+      <Filter>code\headers\components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\headers\components\Velocity.hpp">
+      <Filter>code\headers\components</Filter>
     </ClInclude>
     <ClInclude Include="..\code\headers\core\Application.hpp">
       <Filter>code\headers\core</Filter>
@@ -114,11 +141,26 @@
     <ClInclude Include="..\code\headers\systems\Input_System.hpp">
       <Filter>code\headers\systems</Filter>
     </ClInclude>
+    <ClInclude Include="..\code\headers\systems\Movement_System.hpp">
+      <Filter>code\headers\systems</Filter>
+    </ClInclude>
     <ClInclude Include="..\code\headers\systems\Present_System.hpp">
+      <Filter>code\headers\systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\headers\systems\Render_System.hpp">
+      <Filter>code\headers\systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\headers\systems\System.hpp">
+      <Filter>code\headers\systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\headers\systems\Transform_System.hpp">
       <Filter>code\headers\systems</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\code\sources\components\Transform.cpp">
+      <Filter>code\sources\components</Filter>
+    </ClCompile>
     <ClCompile Include="..\code\sources\core\Application.cpp">
       <Filter>code\sources\core</Filter>
     </ClCompile>
@@ -156,6 +198,15 @@
       <Filter>code\sources\resources</Filter>
     </ClCompile>
     <ClCompile Include="..\code\sources\systems\Input_System.cpp">
+      <Filter>code\sources\systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\sources\systems\Movement_System.cpp">
+      <Filter>code\sources\systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\sources\systems\Render_System.cpp">
+      <Filter>code\sources\systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\sources\systems\Transform_System.cpp">
       <Filter>code\sources\systems</Filter>
     </ClCompile>
     <ClCompile Include="..\code\sources\third_party\third_party.cpp">

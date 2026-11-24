@@ -78,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\code\Test_Registry.cpp" />
+    <ClCompile Include="..\code\Test_Systems.cpp" />
     <ClCompile Include="..\code\main.cpp" />
   </ItemGroup>
   <ItemGroup>

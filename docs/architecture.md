@@ -34,9 +34,9 @@ libraries/               SDL2 · GLAD · GLM · stb_image · tinyobjloader (Dear
 ```cpp
 engine::Application application ({ .title = "ECS Engine" });
 
-Model_Viewer viewer (application);          // a Task defined in Game/
+Demo_Scene scene (application);             // a Task defined in Game/
 
-application.get_kernel ().add (viewer);
+application.get_kernel ().add (scene);
 application.run ();                         // returns when the kernel stops
 ```
 
@@ -51,8 +51,11 @@ When `stop()` is called the loop ends and every task is finalized in reverse ord
 | Priority | Task | Phase |
 |---|---|---|
 | 10 | `Input_System` — SDL events → `Input`, resize, window close | 2 |
-| 20 | Scripts (the test scene `Model_Viewer` runs here for now) | 2, 6 |
-| 30–60 | Movement, collision, transform, events | 5–7 |
+| 20 | Scripts (the test scene `Demo_Scene` runs here for now) | 2, 6 |
+| 30 | `Movement_System` | 5 |
+| 40 | Collision | 7 |
+| 50 | `Transform_System` | 5 |
+| 60 | Events | 6 |
 | 90 | `Render_System` | 5 |
 | 100 | Debug UI | 8 |
 | 1000 | `Present_System` — swaps the window buffers | 2 |
@@ -117,11 +120,34 @@ Owns the entity slots, the free list and one pool per component type. A type get
 
 ### Tests
 
-`Tests/` holds a minimal test runner (`TEST` / `CHECK`) and 17 tests: unique and valid handles, version reuse, `clear`, add/get/remove, swap-and-pop integrity, destroy removing every component, view membership, smallest-pool selection, destroying during iteration, and 10,000 entities with half destroyed.
+`Tests/` holds a minimal test runner (`TEST` / `CHECK`). `Test_Registry.cpp` has 17 tests: unique and valid handles, version reuse, `clear`, add/get/remove, swap-and-pop integrity, destroy removing every component, view membership, smallest-pool selection, destroying during iteration, and 10,000 entities with half destroyed. `Test_Systems.cpp` (phase 5) has 10 more for the transform hierarchy (parent rotation and scale, creation order, destroyed parents, cycles) and for `Movement_System`.
 
 ### Differences from the original assignment
 
 The course's entity was an object holding `std::map<std::string, std::shared_ptr<Component>>`. Here an entity holds nothing: components of one type are packed together, they are found by type at compile time instead of by string, and systems iterate over the components they need instead of over every entity.
+
+## Components and systems (phase 5)
+
+Components are plain data in `Engine/code/headers/components/`:
+
+| Component | Data | Used by |
+|---|---|---|
+| `Name` | Label | Logs, debug inspector (phase 8) |
+| `Transform` | Position, rotation (quaternion), scale, `parent`; `world` matrix written by `Transform_System` | Every system that places things |
+| `Velocity` | Linear (units/s) and angular (rad/s around local axes) | `Movement_System` |
+| `Mesh_Renderer` | Shared `Mesh` and `Material`, `visible` | `Render_System` |
+| `Camera_Component` | Field of view, near/far planes, `active` | `Render_System` |
+| `Light_Component` | Colour and intensity of a point light | `Render_System` |
+
+Each frame, after the game's tasks:
+
+1. **`Movement_System`** (30) — `view<Transform, Velocity>`: moves and rotates.
+2. **`Transform_System`** (50) — computes `world = parent's world × local` for every `Transform`. A parent is computed on demand the first time one of its children needs it, and each entity is computed once per frame (a stamp per entity index), so it does not matter in which order the pool holds them. An invalid parent (destroyed, or without a `Transform`) makes the child a root; cycles and chains deeper than 64 stop instead of hanging.
+3. **`Render_System`** (90) — the only place where the ECS meets the renderer. It takes the first active `Transform + Camera_Component` (view matrix = inverse of its world matrix, without scale) and the first `Transform + Light_Component`, then submits every visible `Transform + Mesh_Renderer`.
+
+All of them derive from `System`, a `Task` that holds the `Registry`. `Application` owns the registry and registers these systems, so a game only creates entities.
+
+Destroying a parent does not destroy its children: they become roots. Destroying a whole branch is left to the game for now.
 
 ## Modules so far
 
@@ -134,13 +160,18 @@ The course's entity was an object holding `std::map<std::string, std::shared_ptr
 | `ecs/Component_Pool` | `Component_Pool.hpp` | Sparse set for one component type. |
 | `ecs/Registry` | `Registry.hpp/.cpp` | Entities, pools, component access, views. |
 | `ecs/View` | `View.hpp` | Iteration over entities with a set of components. |
+| `components/*` | `Transform`, `Velocity`, `Mesh_Renderer`, `Camera_Component`, `Light_Component`, `Name` | Engine components. |
+| `systems/System` | `System.hpp` | Base class: a task with access to the registry. |
+| `systems/Movement_System` | `Movement_System.hpp/.cpp` | Applies `Velocity`. |
+| `systems/Transform_System` | `Transform_System.hpp/.cpp` | World matrices and hierarchy. |
+| `systems/Render_System` | `Render_System.hpp/.cpp` | Camera, light and mesh entities → `Renderer`. |
 | `core/Task` | `Task.hpp` | Base class of every per-frame task: name, priority, `initialize` / `execute(dt)` / `finalize`. Priority constants. |
 | `core/Kernel` | `Kernel.hpp/.cpp` | Main loop, priority-sorted task list, deferred add/remove, delta time, FPS. |
 | `core/Timer` | `Timer.hpp` | Elapsed seconds over `std::chrono::steady_clock`. |
 | `core/Input` | `Input.hpp` | Keyboard and mouse state for the current frame. |
-| `core/Application` | `Application.hpp/.cpp` | Owns SDL, window, resources, renderer, input and kernel; registers the engine tasks. |
+| `core/Application` | `Application.hpp/.cpp` | Owns SDL, window, resources, renderer, registry, input and kernel; registers the engine systems. |
 | `systems/Input_System` | `Input_System.hpp/.cpp` | Fills `Input` from the SDL event queue. |
 | `systems/Present_System` | `Present_System.hpp` | Swaps the window buffers at the end of the frame. |
 | `renderer/*` | `Shader`, `Texture`, `Mesh`, `Model_Loader`, `Material`, `Camera`, `Renderer`, `Render_Command` | See the renderer section above. |
 | `resources/Resource_Manager` | `Resource_Manager.hpp/.cpp` | Asset cache by path. |
-| `Game` | `main.cpp`, `Model_Viewer`, `Fly_Camera` | Creates the application and a test scene that uses the renderer directly; becomes entities in phase 5. |
+| `Game` | `main.cpp`, `Demo_Scene`, `Fly_Camera` | Builds the test scene as entities and handles its input; the logic moves into scripts in phase 6. |

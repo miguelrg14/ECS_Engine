@@ -30,7 +30,9 @@ namespace engine
         SDL_LogError (SDL_LOG_CATEGORY_APPLICATION, format, std::forward< Args >(arguments)...);
     }
 
-    inline void log_info (const char * message) { SDL_LogInfo  (SDL_LOG_CATEGORY_APPLICATION, "%s", message); }
-    inline void log_error(const char * message) { SDL_LogError (SDL_LOG_CATEGORY_APPLICATION, "%s", message); }
+    // Messages without arguments are printed as they are, never read as a format.
+    inline void log_info    (const char * message) { SDL_LogInfo  (SDL_LOG_CATEGORY_APPLICATION, "%s", message); }
+    inline void log_warning (const char * message) { SDL_LogWarn  (SDL_LOG_CATEGORY_APPLICATION, "%s", message); }
+    inline void log_error   (const char * message) { SDL_LogError (SDL_LOG_CATEGORY_APPLICATION, "%s", message); }
 
 }

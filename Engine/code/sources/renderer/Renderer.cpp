@@ -19,8 +19,13 @@ namespace engine
 
     void Renderer::begin_frame (const Camera & camera, const Point_Light & frame_light, const Fog & frame_fog)
     {
-        view       = camera.get_view ();
-        projection = camera.get_projection ();
+        begin_frame (camera.get_view (), camera.get_projection (), frame_light, frame_fog);
+    }
+
+    void Renderer::begin_frame (const glm::mat4 & frame_view, const glm::mat4 & frame_projection, const Point_Light & frame_light, const Fog & frame_fog)
+    {
+        view       = frame_view;
+        projection = frame_projection;
         light      = frame_light;
         fog        = frame_fog;
 
