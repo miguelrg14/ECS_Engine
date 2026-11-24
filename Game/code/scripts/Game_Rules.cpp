@@ -7,6 +7,8 @@
 #include "../Game_Components.hpp"
 #include "../Game_Events.hpp"
 
+#include <algorithm>
+
 using namespace engine;
 
 Game_Rules::Game_Rules (Entity given_player, const glm::vec3 & given_start, std::vector< glm::vec3 > given_orb_positions)

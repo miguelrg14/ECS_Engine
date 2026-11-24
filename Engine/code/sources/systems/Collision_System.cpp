@@ -12,7 +12,10 @@
 #include <glm/mat3x3.hpp>
 
 #include <algorithm>
+#include <iterator>
 #include <numeric>
+#include <utility>
+#include <vector>
 
 namespace engine
 {
