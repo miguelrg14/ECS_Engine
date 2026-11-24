@@ -57,13 +57,23 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\code\headers\Engine.hpp" />
+    <ClInclude Include="..\code\headers\core\Application.hpp" />
+    <ClInclude Include="..\code\headers\core\Input.hpp" />
+    <ClInclude Include="..\code\headers\core\Kernel.hpp" />
     <ClInclude Include="..\code\headers\core\Log.hpp" />
+    <ClInclude Include="..\code\headers\core\Task.hpp" />
+    <ClInclude Include="..\code\headers\core\Timer.hpp" />
     <ClInclude Include="..\code\headers\core\Window.hpp" />
     <ClInclude Include="..\code\headers\renderer\Render_Command.hpp" />
+    <ClInclude Include="..\code\headers\systems\Input_System.hpp" />
+    <ClInclude Include="..\code\headers\systems\Present_System.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\code\sources\core\Application.cpp" />
+    <ClCompile Include="..\code\sources\core\Kernel.cpp" />
     <ClCompile Include="..\code\sources\core\Window.cpp" />
     <ClCompile Include="..\code\sources\renderer\Render_Command.cpp" />
+    <ClCompile Include="..\code\sources\systems\Input_System.cpp" />
     <ClCompile Include="..\..\libraries\glad\src\glad.c">
       <CompileAs>CompileAsC</CompileAs>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>

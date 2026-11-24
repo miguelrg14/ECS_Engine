@@ -115,11 +115,12 @@ namespace engine
 
         if (enabled)
         {
-            if (SDL_GL_SetSwapInterval (-1) != 0) SDL_GL_SetSwapInterval (1);
+            vsync = SDL_GL_SetSwapInterval (-1) == 0 || SDL_GL_SetSwapInterval (1) == 0;
         }
         else
         {
             SDL_GL_SetSwapInterval (0);
+            vsync = false;
         }
     }
 

@@ -4,7 +4,7 @@ A small game engine written from scratch in **C++20 and modern OpenGL 3.3 (Core 
 
 It revisits the final assignment of the *Graphics Engines and Plugins* course (Game Design & Development degree): a task kernel, an entity/component subsystem and a messaging subsystem, split into an `Engine` static library and a `Game` executable. This version replaces the object-oriented entity model with a real ECS (entities as IDs, components stored contiguously per type, systems that iterate over views) and draws with my own renderer from [VS_3D-Renderer](https://github.com/miguelrg14/VS_3D-Renderer).
 
-> **Status:** phase 1 of 8. The solution builds and opens an OpenGL 3.3 window. See the [roadmap](#roadmap).
+> **Status:** phase 2 of 8. A task kernel runs the main loop with frame timing and keyboard/mouse input. See the [roadmap](#roadmap).
 
 ---
 
@@ -13,7 +13,7 @@ It revisits the final assignment of the *Graphics Engines and Plugins* course (G
 | Phase | Goal | Status |
 |---|---|---|
 | 1 · Solution skeleton | `Engine` static library + `Game` executable, SDL2 window, OpenGL 3.3 context through GLAD | ✅ Done |
-| 2 · Kernel, timer, input | Priority-ordered systems with `initialize` / `execute(dt)` / `finalize`, frame timer, keyboard and mouse state | ⏳ |
+| 2 · Kernel, timer, input | Priority-ordered systems with `initialize` / `execute(dt)` / `finalize`, frame timer, keyboard and mouse state | ✅ Done |
 | 3 · Renderer module | Shaders, meshes, textures and materials ported from VS_3D-Renderer, resource cache, Assimp models | ⏳ |
 | 4 · ECS core | Sparse-set component pools, `Registry`, `view<A, B>()`, unit tests | ⏳ |
 | 5 · Core components and systems | Transform hierarchy, camera, lights, render system | ⏳ |
@@ -75,9 +75,18 @@ See **[docs/building.md](docs/building.md)** for details and troubleshooting.
 
 ### Controls
 
+The current build is the phase 2 sandbox, which tests timing and input:
+
 | Input | Action |
 |---|---|
+| `Space` (hold) | Cycle the background colour faster |
+| Left mouse (hold) | Pick the colour from the cursor position |
+| Mouse wheel | Change the cycling speed |
+| `V` | Toggle vsync |
+| `R` | Reset |
 | `Esc` | Quit |
+
+The window title shows FPS, frame time and the vsync state.
 
 ---
 

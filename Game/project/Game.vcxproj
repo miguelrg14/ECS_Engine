@@ -85,6 +85,10 @@ exit 0</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\code\Sandbox.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\code\Sandbox.cpp" />
     <ClCompile Include="..\code\main.cpp" />
   </ItemGroup>
   <ItemGroup>

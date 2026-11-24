@@ -13,6 +13,9 @@
     <Filter Include="code\headers\renderer">
       <UniqueIdentifier>{CDC59986-E878-568B-8AE7-43489A37E237}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\headers\systems">
+      <UniqueIdentifier>{990A0EDD-4C31-5F93-8B77-9DD583FC4B97}</UniqueIdentifier>
+    </Filter>
     <Filter Include="code\sources">
       <UniqueIdentifier>{D6A6E1D8-336A-5E37-BFB0-777C6A069568}</UniqueIdentifier>
     </Filter>
@@ -22,6 +25,9 @@
     <Filter Include="code\sources\renderer">
       <UniqueIdentifier>{34CFE7EB-7E1F-56CC-9E11-03BFA8A53C36}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\sources\systems">
+      <UniqueIdentifier>{D0E5F5CE-DA4F-5475-8A6B-C66051799155}</UniqueIdentifier>
+    </Filter>
     <Filter Include="libraries">
       <UniqueIdentifier>{8EB2A969-EA92-59F6-B3EC-9662B7C3E075}</UniqueIdentifier>
     </Filter>
@@ -30,7 +36,22 @@
     <ClInclude Include="..\code\headers\Engine.hpp">
       <Filter>code\headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\code\headers\core\Application.hpp">
+      <Filter>code\headers\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\headers\core\Input.hpp">
+      <Filter>code\headers\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\headers\core\Kernel.hpp">
+      <Filter>code\headers\core</Filter>
+    </ClInclude>
     <ClInclude Include="..\code\headers\core\Log.hpp">
+      <Filter>code\headers\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\headers\core\Task.hpp">
+      <Filter>code\headers\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\headers\core\Timer.hpp">
       <Filter>code\headers\core</Filter>
     </ClInclude>
     <ClInclude Include="..\code\headers\core\Window.hpp">
@@ -39,13 +60,28 @@
     <ClInclude Include="..\code\headers\renderer\Render_Command.hpp">
       <Filter>code\headers\renderer</Filter>
     </ClInclude>
+    <ClInclude Include="..\code\headers\systems\Input_System.hpp">
+      <Filter>code\headers\systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\headers\systems\Present_System.hpp">
+      <Filter>code\headers\systems</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\code\sources\core\Application.cpp">
+      <Filter>code\sources\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\sources\core\Kernel.cpp">
+      <Filter>code\sources\core</Filter>
+    </ClCompile>
     <ClCompile Include="..\code\sources\core\Window.cpp">
       <Filter>code\sources\core</Filter>
     </ClCompile>
     <ClCompile Include="..\code\sources\renderer\Render_Command.cpp">
       <Filter>code\sources\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\sources\systems\Input_System.cpp">
+      <Filter>code\sources\systems</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libraries\glad\src\glad.c">
       <Filter>libraries</Filter>

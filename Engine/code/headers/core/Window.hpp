@@ -34,6 +34,7 @@ namespace engine
         SDL_GLContext opengl_context = nullptr;
         unsigned      width          = 0;
         unsigned      height         = 0;
+        bool          vsync          = false;
 
     public:
 
@@ -59,6 +60,7 @@ namespace engine
 
         unsigned      get_width   () const { return width;  }
         unsigned      get_height  () const { return height; }
+        bool          is_vsync    () const { return vsync;  }
         float         get_aspect  () const { return height > 0 ? float(width) / float(height) : 1.f; }
         SDL_Window  * get_handle  () const { return window_handle;  }
         SDL_GLContext get_context () const { return opengl_context; }

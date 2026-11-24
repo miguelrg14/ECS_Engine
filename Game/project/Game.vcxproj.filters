@@ -6,8 +6,14 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\code\Sandbox.hpp">
+      <Filter>code</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\code\Sandbox.cpp">
+      <Filter>code</Filter>
+    </ClCompile>
     <ClCompile Include="..\code\main.cpp">
       <Filter>code</Filter>
     </ClCompile>
