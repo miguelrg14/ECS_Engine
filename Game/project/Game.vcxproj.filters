@@ -18,6 +18,9 @@
     <ClInclude Include="..\code\Demo_Scene.hpp">
       <Filter>code</Filter>
     </ClInclude>
+    <ClInclude Include="..\code\Game_Components.hpp">
+      <Filter>code</Filter>
+    </ClInclude>
     <ClInclude Include="..\code\Game_Events.hpp">
       <Filter>code</Filter>
     </ClInclude>
@@ -31,6 +34,12 @@
       <Filter>code\scripts</Filter>
     </ClInclude>
     <ClInclude Include="..\code\scripts\Follow_Camera.hpp">
+      <Filter>code\scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\scripts\Game_Rules.hpp">
+      <Filter>code\scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\scripts\Patrol.hpp">
       <Filter>code\scripts</Filter>
     </ClInclude>
     <ClInclude Include="..\code\scripts\Player_Controller.hpp">
@@ -51,6 +60,9 @@
       <Filter>code\scripts</Filter>
     </ClCompile>
     <ClCompile Include="..\code\scripts\Follow_Camera.cpp">
+      <Filter>code\scripts</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\scripts\Game_Rules.cpp">
       <Filter>code\scripts</Filter>
     </ClCompile>
     <ClCompile Include="..\code\scripts\Player_Controller.cpp">

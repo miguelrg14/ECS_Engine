@@ -87,11 +87,14 @@ exit 0</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\code\Demo_Scene.hpp" />
+    <ClInclude Include="..\code\Game_Components.hpp" />
     <ClInclude Include="..\code\Game_Events.hpp" />
     <ClInclude Include="..\code\scripts\Bob.hpp" />
     <ClInclude Include="..\code\scripts\Camera_Math.hpp" />
     <ClInclude Include="..\code\scripts\Fly_Camera.hpp" />
     <ClInclude Include="..\code\scripts\Follow_Camera.hpp" />
+    <ClInclude Include="..\code\scripts\Game_Rules.hpp" />
+    <ClInclude Include="..\code\scripts\Patrol.hpp" />
     <ClInclude Include="..\code\scripts\Player_Controller.hpp" />
     <ClInclude Include="..\code\scripts\Squash_And_Stretch.hpp" />
   </ItemGroup>
@@ -100,6 +103,7 @@ exit 0</Command>
     <ClCompile Include="..\code\main.cpp" />
     <ClCompile Include="..\code\scripts\Fly_Camera.cpp" />
     <ClCompile Include="..\code\scripts\Follow_Camera.cpp" />
+    <ClCompile Include="..\code\scripts\Game_Rules.cpp" />
     <ClCompile Include="..\code\scripts\Player_Controller.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -18,6 +18,27 @@ void Player_Controller::on_update (float delta_time)
                           && registry ().has< Camera_Component >(camera)
                           && registry ().get< Camera_Component >(camera).active;
 
+    // What the collisions of the last frame say about where the player stands.
+
+    const Box_Collider * collider = try_get< Box_Collider >();
+    const glm::vec3      push     = collider ? collider->last_push : glm::vec3(0.f);
+
+    const bool supported = transform.position.y <= 0.f || push.y > 0.f;
+
+    if (supported)
+    {
+        if (!grounded) publish (Landed{ entity (), std::max (-vertical_velocity, 0.f) });
+
+        grounded = true;
+        vertical_velocity = std::max (vertical_velocity, 0.f);
+    }
+    else
+    {
+        grounded = false;
+    }
+
+    if (push.y < 0.f && vertical_velocity > 0.f) vertical_velocity = 0.f;       // hit its head
+
     // Walking and turning.
 
     const glm::vec3 direction = has_control ? read_direction () : glm::vec3(0.f);
@@ -26,9 +47,7 @@ void Player_Controller::on_update (float delta_time)
     {
         const float speed = input ().is_key_down (SDL_SCANCODE_LSHIFT) ? run_speed : walk_speed;
 
-        transform.position   += direction * speed * delta_time;
-        transform.position.x  = std::clamp (transform.position.x, -arena_half_size, arena_half_size);
-        transform.position.z  = std::clamp (transform.position.z, -arena_half_size, arena_half_size);
+        transform.position += direction * speed * delta_time;
 
         float target_yaw, unused_pitch;
         camera_math::yaw_pitch_from_direction (direction, target_yaw, unused_pitch);
@@ -38,7 +57,8 @@ void Player_Controller::on_update (float delta_time)
         transform.rotation = glm::slerp (transform.rotation, target_rotation, 1.f - std::exp (-turn_speed * delta_time));
     }
 
-    // Jumping and falling.
+    // Jumping and falling. Gravity always pulls: on a platform the collision
+    // pushes back up every frame, and that push is what tells us we stand on it.
 
     if (has_control && grounded && input ().was_key_pressed (SDL_SCANCODE_SPACE))
     {
@@ -48,20 +68,12 @@ void Player_Controller::on_update (float delta_time)
         publish (Jumped{ entity () });
     }
 
-    if (!grounded)
+    vertical_velocity    -= gravity * delta_time;
+    transform.position.y += vertical_velocity * delta_time;
+
+    if (transform.position.y < 0.f)
     {
-        vertical_velocity    -= gravity * delta_time;
-        transform.position.y += vertical_velocity * delta_time;
-
-        if (transform.position.y <= 0.f)
-        {
-            transform.position.y = 0.f;
-            grounded = true;
-
-            publish (Landed{ entity (), -vertical_velocity });
-
-            vertical_velocity = 0.f;
-        }
+        transform.position.y = 0.f;                                         // the floor
     }
 }
 

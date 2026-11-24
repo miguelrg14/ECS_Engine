@@ -10,7 +10,7 @@ Game (executable)        main.cpp, scenes, scripts
    ▼
 Engine (static library)
    ├── Kernel            runs the systems in priority order every frame        (phase 2)
-   ├── Systems           Input → Script → Movement → Collision → Transform
+   ├── Systems           Input → Script → Movement → Transform → Collision
    │                     → Event → Render → Debug UI                         (phases 2–8)
    ├── Registry (ECS)    entity IDs + one sparse-set pool per component type  (phase 4)
    ├── Event_Bus         typed publish / subscribe, dispatched once per frame (phase 6)
@@ -53,8 +53,8 @@ When `stop()` is called the loop ends and every task is finalized in reverse ord
 | 10 | `Input_System` — SDL events → `Input`, resize, window close | 2 |
 | 20 | `Script_System`, then the game's `Demo_Scene` task | 6 |
 | 30 | `Movement_System` | 5 |
-| 40 | Collision | 7 |
 | 50 | `Transform_System` | 5 |
+| 55 | `Collision_System` | 7 |
 | 60 | `Event_System` | 6 |
 | 90 | `Render_System` | 5 |
 | 100 | Debug UI | 8 |
@@ -120,7 +120,7 @@ Owns the entity slots, the free list and one pool per component type. A type get
 
 ### Tests
 
-`Tests/` holds a minimal test runner (`TEST` / `CHECK`). `Test_Registry.cpp` has 17 tests: unique and valid handles, version reuse, `clear`, add/get/remove, swap-and-pop integrity, destroy removing every component, view membership, smallest-pool selection, destroying during iteration, and 10,000 entities with half destroyed. `Test_Systems.cpp` (phase 5) has 10 more for the transform hierarchy (parent rotation and scale, creation order, destroyed parents, cycles) and for `Movement_System`. `Test_Events_Scripts.cpp` (phase 6) has 14 more: event queueing and delivery, unsubscribing from inside a handler, events published during dispatch, the script lifecycle, deferred destruction, automatic unsubscription and scripts created during an update.
+`Tests/` holds a minimal test runner (`TEST` / `CHECK`). `Test_Registry.cpp` has 17 tests: unique and valid handles, version reuse, `clear`, add/get/remove, swap-and-pop integrity, destroy removing every component, view membership, smallest-pool selection, destroying during iteration, and 10,000 entities with half destroyed. `Test_Systems.cpp` (phase 5) has 10 more for the transform hierarchy (parent rotation and scale, creation order, destroyed parents, cycles) and for `Movement_System`. `Test_Events_Scripts.cpp` (phase 6) has 14 more: event queueing and delivery, unsubscribing from inside a handler, events published during dispatch, the script lifecycle, deferred destruction, automatic unsubscription and scripts created during an update. `Test_Collisions.cpp` (phase 7) has 9 more: sweep and prune against brute force on 400 random boxes, separation along the least-penetration axis, standing on a platform, two dynamic boxes, static pairs, trigger enter/exit, exit on destruction and rotated boxes.
 
 ### Differences from the original assignment
 
@@ -187,6 +187,44 @@ From inside a script: `entity()`, `registry()`, `get<T>()` / `try_get<T>()` / `h
 
 `Demo_Scene` also subscribes to `Landed` and counts landings: a second listener of the same event, added without touching the player.
 
+## Collisions and the demo game (phase 7)
+
+### Box_Collider
+
+An axis-aligned box in the entity's local space: `half_extents`, `offset`, `is_trigger`, `is_static`. It follows the entity's world matrix; a rotated entity gets the smallest axis-aligned box that contains its rotated box.
+
+| Kind | Behaviour |
+|---|---|
+| Static (`is_static`) | Never pushed. Walls, crates, platforms. A script may still move it (the floating cube). |
+| Dynamic (neither flag) | Pushed out of what it overlaps. Should be a root entity. |
+| Trigger (`is_trigger`) | Never blocks; reports `Trigger_Enter` / `Trigger_Exit`. Triggers ignore each other. |
+
+### Collision_System (priority 55)
+
+It runs after `Transform_System` because it needs this frame's world matrices.
+
+1. **Gather**: one world-space box per `Transform + Box_Collider`.
+2. **Broad phase, sweep and prune**: boxes sorted by their minimum x; each box is tested only against the boxes after it whose x range starts before its own ends. In the 400 random boxes of the unit test that is under a quarter of the 79,800 possible pairs, with exactly the same result as testing them all.
+3. **Narrow phase and response**: for each overlapping solid pair, the penetration on each axis is measured and the boxes are separated along the smallest one: all of it for a dynamic box against a static one, half each for two dynamic boxes. The push is accumulated in `Box_Collider::last_push`.
+4. If anything moved, world matrices are recomputed so children (the player's body and head) follow in the same frame.
+5. **Events**: pairs are compared with the previous frame's to publish `Trigger_Enter`, `Trigger_Exit` and `Collision_Enter` only when something changes. A destroyed entity produces an exit event with its old handle.
+
+Limitations, by design for this scope: axis-aligned boxes only, no continuous detection (a very fast object can cross a thin wall in one frame), no rigid-body physics.
+
+### How the player uses it
+
+`Player_Controller` moves the player without knowing about walls; `Collision_System` pushes it back out. Gravity always pulls, so on a crate the system pushes the player up every frame, and `last_push.y > 0` is how the controller knows it is standing. A downward push means it hit its head.
+
+### The game
+
+| Piece | Kind | Role |
+|---|---|---|
+| `Game_State` | Component on the "Game" entity | Orbs collected, time, round state. The window title reads it. |
+| `Game_Rules` | Script on the "Game" entity | Spawns orbs, runs the timer, listens to `Trigger_Enter`: an orb is destroyed and counted (`Orb_Collected`), a drone sends the player back to the start (`Player_Caught`). Ends the round with `Round_Over`. R restarts. |
+| `Orb`, `Drone` | Empty tag components | Tell `Game_Rules` what the player touched. |
+| `Patrol` | Script on drones | Follows a loop of waypoints and faces its direction; combined with `Bob` for hovering. |
+| `Follow_Camera` | Script | Keeps the camera inside the arena by moving closer along its line of sight instead of going behind a wall. |
+
 ## Modules so far
 
 | Module | Files | Responsibility |
@@ -208,6 +246,9 @@ From inside a script: `entity()`, `registry()`, `get<T>()` / `try_get<T>()` / `h
 | `systems/Script_System` | `Script_System.hpp/.cpp` | Runs scripts, deferred destruction. |
 | `events/Event_Bus` | `Event_Bus.hpp` | Typed publish / subscribe with a per-frame queue. |
 | `systems/Event_System` | `Event_System.hpp` | Dispatches the queued events. |
+| `components/Box_Collider` | `Box_Collider.hpp` | Collision box, trigger and static flags. |
+| `events/Collision_Events` | `Collision_Events.hpp` | `Trigger_Enter`, `Trigger_Exit`, `Collision_Enter`. |
+| `systems/Collision_System` | `Collision_System.hpp/.cpp` | Sweep and prune, separation, collision events. |
 | `core/Task` | `Task.hpp` | Base class of every per-frame task: name, priority, `initialize` / `execute(dt)` / `finalize`. Priority constants. |
 | `core/Kernel` | `Kernel.hpp/.cpp` | Main loop, priority-sorted task list, deferred add/remove, delta time, FPS. |
 | `core/Timer` | `Timer.hpp` | Elapsed seconds over `std::chrono::steady_clock`. |
@@ -217,4 +258,4 @@ From inside a script: `entity()`, `registry()`, `get<T>()` / `try_get<T>()` / `h
 | `systems/Present_System` | `Present_System.hpp` | Swaps the window buffers at the end of the frame. |
 | `renderer/*` | `Shader`, `Texture`, `Mesh`, `Model_Loader`, `Material`, `Camera`, `Renderer`, `Render_Command` | See the renderer section above. |
 | `resources/Resource_Manager` | `Resource_Manager.hpp/.cpp` | Asset cache by path. |
-| `Game` | `main.cpp`, `Demo_Scene`, `Game_Events.hpp`, `scripts/` | Builds the demo scene and handles global keys; per-entity logic is in scripts. |
+| `Game` | `main.cpp`, `Demo_Scene`, `Game_Events.hpp`, `Game_Components.hpp`, `scripts/` | Builds the level and handles global keys; the game itself is scripts, components and events. |

@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "components/Box_Collider.hpp"
 #include "components/Camera_Component.hpp"
 #include "components/Light_Component.hpp"
 #include "components/Mesh_Renderer.hpp"

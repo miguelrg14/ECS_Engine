@@ -17,3 +17,20 @@ struct Landed
     engine::Entity entity;
     float          impact_speed;       // vertical speed when touching the ground, units/s
 };
+
+struct Orb_Collected
+{
+    int collected;
+    int total;
+};
+
+struct Player_Caught
+{
+    engine::Entity drone;
+};
+
+struct Round_Over
+{
+    bool  won;
+    float seconds;                     // time played
+};

@@ -11,6 +11,9 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\code\Test_Collisions.cpp">
+      <Filter>code</Filter>
+    </ClCompile>
     <ClCompile Include="..\code\Test_Events_Scripts.cpp">
       <Filter>code</Filter>
     </ClCompile>

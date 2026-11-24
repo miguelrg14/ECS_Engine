@@ -16,8 +16,8 @@ namespace engine
         inline constexpr int input     =   10;
         inline constexpr int scripts   =   20;
         inline constexpr int movement  =   30;
-        inline constexpr int collision =   40;
         inline constexpr int transform =   50;
+        inline constexpr int collision =   55;     // needs this frame's world matrices
         inline constexpr int events    =   60;
         inline constexpr int render    =   90;
         inline constexpr int debug_ui  =  100;

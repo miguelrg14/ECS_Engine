@@ -29,6 +29,7 @@ namespace engine
         script_system   (registry, events, input, &window, &resources),
         movement_system (registry),
         transform_system(registry),
+        collision_system(registry, events, transform_system),
         event_system    (events),
         render_system   (registry, renderer, window),
         present_system  (window)
@@ -37,6 +38,7 @@ namespace engine
         kernel.add (script_system   );
         kernel.add (movement_system );
         kernel.add (transform_system);
+        kernel.add (collision_system);
         kernel.add (event_system    );
         kernel.add (render_system   );
         kernel.add (present_system  );

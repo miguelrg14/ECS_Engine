@@ -33,7 +33,21 @@ void Follow_Camera::on_update (float delta_time)
     // Aim at the target's chest, not its feet.
     const glm::vec3 focus = registry ().get< Transform >(target).position + glm::vec3(0.f, 1.2f, 0.f);
 
-    glm::vec3 desired = focus - camera_math::direction_from_yaw_pitch (yaw, pitch) * distance;
+    // From the focus, the camera sits `distance` units back along the view direction.
+    // If that would leave the arena, come closer along the same line instead of
+    // moving sideways: the angle stays the same, only the distance shrinks.
+
+    const glm::vec3 back = -camera_math::direction_from_yaw_pitch (yaw, pitch);
+
+    float reach = distance;
+
+    for (int axis : { 0, 2 })
+    {
+        if (back[axis] >  0.0001f) reach = std::min (reach, ( bounds_half - focus[axis]) / back[axis]);
+        if (back[axis] < -0.0001f) reach = std::min (reach, (-bounds_half - focus[axis]) / back[axis]);
+    }
+
+    glm::vec3 desired = focus + back * std::max (reach, 1.f);
     desired.y = std::max (desired.y, 0.3f);                  // never below the floor
 
     Transform & transform = get< Transform >();

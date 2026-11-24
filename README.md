@@ -4,11 +4,11 @@ A small game engine written from scratch in **C++20 and modern OpenGL 3.3 (Core 
 
 It revisits the final assignment of the *Graphics Engines and Plugins* course (Game Design & Development degree): a task kernel, an entity/component subsystem and a messaging subsystem, split into an `Engine` static library and a `Game` executable. This version replaces the object-oriented entity model with a real ECS (entities as IDs, components stored contiguously per type, systems that iterate over views) and draws with my own renderer from [VS_3D-Renderer](https://github.com/miguelrg14/VS_3D-Renderer).
 
-> **Status:** phase 6 of 8. Gameplay logic lives in native C++ scripts attached to entities, and scripts talk to each other through a typed event bus. The demo has a controllable character with a third-person camera. See the [roadmap](#roadmap).
+> **Status:** phase 7 of 8. The demo is a small playable game: collect five orbs in an arena before the time runs out while patrolling drones try to catch you. Walls, crates, orbs and drones are box colliders handled by the engine's collision system. See the [roadmap](#roadmap).
 
 <p align="center">
-  <img src="docs/images/06-player.png" alt="Phase 6: a blocky orange character with a checker-textured head walks across the wooden floor, followed by a third-person camera, next to the umbrella, the floating cube and the plant" width="800">
-  <br><em>Phase 6 · player character driven by scripts, third-person camera</em>
+  <img src="docs/images/07-orb-arena.png" alt="Phase 7: the orb arena seen from behind the player, with wooden walls, crate stairs in the far corner, patrolling drones, a glowing orb and the floating checker cube" width="800">
+  <br><em>Phase 7 · the orb arena: walls and crates block, orbs and drones are triggers</em>
 </p>
 
 <p align="center">
@@ -28,7 +28,7 @@ It revisits the final assignment of the *Graphics Engines and Plugins* course (G
 | 4 · ECS core | Sparse-set component pools, `Registry`, `view<A, B>()`, unit tests | ✅ Done |
 | 5 · Core components and systems | Transform hierarchy, camera, lights, render system | ✅ Done |
 | 6 · Scripts and events | Native scripts, typed event bus, player controller | ✅ Done |
-| 7 · Collisions and demo | AABB colliders and triggers, small playable demo | ⏳ |
+| 7 · Collisions and demo | AABB colliders and triggers, small playable demo | ✅ Done |
 | 8 · Debug tools and release | Dear ImGui entity inspector, docs, packaged build | ⏳ |
 
 ---
@@ -85,6 +85,18 @@ class Squash_And_Stretch : public engine::Script
 
 registry.add< engine::Script_Component >(player).bind< Player_Controller >(camera);
 registry.get< engine::Script_Component >(player).bind< Squash_And_Stretch >();
+```
+
+Collisions are components too. A wall is a static box; a pickup is a trigger whose overlap arrives as an event:
+
+```cpp
+registry.add< engine::Box_Collider >(wall);                                         // static, solid
+registry.add< engine::Box_Collider >(orb, glm::vec3(1.2f), glm::vec3(0.f), true);   // trigger
+
+subscribe< engine::Trigger_Enter >([this] (const engine::Trigger_Enter & event)
+{
+    if (event.other == player && registry ().has< Orb >(event.trigger)) collect (event.trigger);
+});
 ```
 
 Entities are 32-bit IDs with a generation counter, so a handle to a destroyed entity is detected instead of reaching the entity that reused its slot. Each component type is stored in its own sparse set: add, remove and lookup are O(1), and components sit contiguously in memory. Details in [docs/architecture.md](docs/architecture.md#ecs-core-phase-4).
@@ -148,7 +160,7 @@ See **[docs/building.md](docs/building.md)** for details and troubleshooting.
 
 ### Controls
 
-The current build is the phase 6 demo:
+The current build is the phase 7 demo. **Goal:** collect the 5 orbs within 90 seconds. Touching a drone sends you back to the start. One orb waits on top of the crate stairs.
 
 | Input | Action |
 |---|---|
@@ -157,6 +169,7 @@ The current build is the phase 6 demo:
 | `Space` | Jump |
 | Right mouse (hold) + move | Orbit the camera around the character |
 | Mouse wheel | Zoom |
+| `R` | Start a new round |
 | `Tab` | Switch to the free fly camera and back (fly: `W` `A` `S` `D` + `Q` / `E`, right mouse to look) |
 | `C` | Add / remove a field of 1,000 spinning cubes |
 | `L` | Pause / resume the light |
@@ -165,7 +178,7 @@ The current build is the phase 6 demo:
 | `V` | Toggle vsync |
 | `Esc` | Quit |
 
-The window title shows FPS, frame time, entities, draw calls, the active camera and how many times the character has landed.
+The window title shows the orbs collected, the time left (or the result), FPS, entities and colliders.
 
 ---
 

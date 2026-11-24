@@ -69,6 +69,9 @@
     <ClInclude Include="..\code\headers\components.hpp">
       <Filter>code\headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\code\headers\components\Box_Collider.hpp">
+      <Filter>code\headers\components</Filter>
+    </ClInclude>
     <ClInclude Include="..\code\headers\components\Camera_Component.hpp">
       <Filter>code\headers\components</Filter>
     </ClInclude>
@@ -120,6 +123,9 @@
     <ClInclude Include="..\code\headers\ecs\View.hpp">
       <Filter>code\headers\ecs</Filter>
     </ClInclude>
+    <ClInclude Include="..\code\headers\events\Collision_Events.hpp">
+      <Filter>code\headers\events</Filter>
+    </ClInclude>
     <ClInclude Include="..\code\headers\events\Event_Bus.hpp">
       <Filter>code\headers\events</Filter>
     </ClInclude>
@@ -155,6 +161,9 @@
     </ClInclude>
     <ClInclude Include="..\code\headers\scripting\Script_Component.hpp">
       <Filter>code\headers\scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\headers\systems\Collision_System.hpp">
+      <Filter>code\headers\systems</Filter>
     </ClInclude>
     <ClInclude Include="..\code\headers\systems\Event_System.hpp">
       <Filter>code\headers\systems</Filter>
@@ -223,6 +232,9 @@
     </ClCompile>
     <ClCompile Include="..\code\sources\scripting\Script.cpp">
       <Filter>code\sources\scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\sources\systems\Collision_System.cpp">
+      <Filter>code\sources\systems</Filter>
     </ClCompile>
     <ClCompile Include="..\code\sources\systems\Input_System.cpp">
       <Filter>code\sources\systems</Filter>

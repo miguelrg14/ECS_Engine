@@ -58,6 +58,7 @@
   <ItemGroup>
     <ClInclude Include="..\code\headers\Engine.hpp" />
     <ClInclude Include="..\code\headers\components.hpp" />
+    <ClInclude Include="..\code\headers\components\Box_Collider.hpp" />
     <ClInclude Include="..\code\headers\components\Camera_Component.hpp" />
     <ClInclude Include="..\code\headers\components\Light_Component.hpp" />
     <ClInclude Include="..\code\headers\components\Mesh_Renderer.hpp" />
@@ -75,6 +76,7 @@
     <ClInclude Include="..\code\headers\ecs\Entity.hpp" />
     <ClInclude Include="..\code\headers\ecs\Registry.hpp" />
     <ClInclude Include="..\code\headers\ecs\View.hpp" />
+    <ClInclude Include="..\code\headers\events\Collision_Events.hpp" />
     <ClInclude Include="..\code\headers\events\Event_Bus.hpp" />
     <ClInclude Include="..\code\headers\renderer\Camera.hpp" />
     <ClInclude Include="..\code\headers\renderer\Material.hpp" />
@@ -87,6 +89,7 @@
     <ClInclude Include="..\code\headers\resources\Resource_Manager.hpp" />
     <ClInclude Include="..\code\headers\scripting\Script.hpp" />
     <ClInclude Include="..\code\headers\scripting\Script_Component.hpp" />
+    <ClInclude Include="..\code\headers\systems\Collision_System.hpp" />
     <ClInclude Include="..\code\headers\systems\Event_System.hpp" />
     <ClInclude Include="..\code\headers\systems\Input_System.hpp" />
     <ClInclude Include="..\code\headers\systems\Movement_System.hpp" />
@@ -111,6 +114,7 @@
     <ClCompile Include="..\code\sources\renderer\Texture.cpp" />
     <ClCompile Include="..\code\sources\resources\Resource_Manager.cpp" />
     <ClCompile Include="..\code\sources\scripting\Script.cpp" />
+    <ClCompile Include="..\code\sources\systems\Collision_System.cpp" />
     <ClCompile Include="..\code\sources\systems\Input_System.cpp" />
     <ClCompile Include="..\code\sources\systems\Movement_System.cpp" />
     <ClCompile Include="..\code\sources\systems\Render_System.cpp" />
